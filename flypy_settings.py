@@ -279,9 +279,13 @@ class App(tk.Tk):
             box.grid(row=row, column=1, sticky='w', padx=(12, 0))
         ttk.Label(controls, text='設定控制單按 Shift 的行為；\n按住 Shift 搭配字母仍可輸入大寫。', style='Muted.TLabel', wraplength=330).grid(row=12, column=0, columnspan=2, sticky='w', pady=(10, 0))
         ttk.Separator(controls).grid(row=13,column=0,columnspan=2,sticky='ew',pady=18)
-        ttk.Label(controls,text='配色、間距與圓角',style='Section.TLabel').grid(row=14,column=0,columnspan=2,sticky='w',pady=(0,8))
+        wrap_bar=ttk.Frame(controls)
+        wrap_bar.grid(row=14,column=0,columnspan=2,sticky='ew',pady=(0,8))
+        ttk.Label(wrap_bar,text='候選換行與外觀',style='Section.TLabel').pack(anchor='w')
+        ttk.Button(wrap_bar,text='試用多行候選',command=self.multiline_candidates).pack(anchor='w',pady=6)
+        ttk.Label(wrap_bar,text='橫排＋最大寬度 420 可自動換行。寬度 0 為單行；可調整下方寬度並看右側預覽。\n每頁仍顯示 5～9 詞，翻頁後也維持多行；不是逐行展開的捲軸模式。',style='Muted.TLabel',wraplength=330).pack(anchor='w')
         self.visual_variables={}
-        keys=['style/color_scheme','style/color_scheme_dark','style/layout/margin_x','style/layout/margin_y',
+        keys=['style/layout/max_width','style/color_scheme','style/color_scheme_dark','style/layout/margin_x','style/layout/margin_y',
               'style/layout/candidate_spacing','style/layout/spacing','style/layout/hilite_padding','style/layout/border_width',
               'style/layout/corner_radius','style/layout/round_corner','style/layout/shadow_radius','style/label_format','style/inline_preedit']
         for row,path in enumerate(keys,15):
@@ -295,7 +299,7 @@ class App(tk.Tk):
                 widget=ttk.Combobox(controls,textvariable=variable,values=['開啟','關閉'],state='readonly',width=12)
             elif path.endswith('label_format'):
                 widget=ttk.Combobox(controls,textvariable=variable,values=['%s','%s.','(%s)'],width=12)
-            else:widget=ttk.Spinbox(controls,from_=0,to=150,textvariable=variable,width=10)
+            else:widget=ttk.Spinbox(controls,from_=0,to=4000 if path.endswith('max_width') else 150,textvariable=variable,width=10)
             widget.grid(row=row,column=1,sticky='ew',padx=(10,0))
             variable.trace_add('write',lambda *_,p=path:self.visual_changed(p))
         bind_settings_wheel(control_canvas, controls, control_scroll)
@@ -417,7 +421,10 @@ class App(tk.Tk):
         if path in self.theme_boxes:return self.theme_options.get(text,text)
         if path.endswith('inline_preedit'):return text=='開啟'
         if path.endswith('label_format'):return text
-        return int(text)
+        value=int(text)
+        if path.endswith('max_width') and not 0 <= value <= 4000:
+            raise SettingsError('候選換行寬度請填 0～4000；0 表示不限制。')
+        return value
 
     def visual_changed(self,path):
         if not self.ready:return
@@ -432,6 +439,10 @@ class App(tk.Tk):
             self.status.set(str(error))
         except (ValueError,StopIteration):
             self.status.set('請填完整數值；預覽暫時保留上一個有效設定。')
+    def multiline_candidates(self):
+        self.variables['layout'].set('橫排')
+        self.visual_variables['style/layout/max_width'].set('420')
+
     def suggest(self):
         self.variables['font_size'].set('18')
         self.variables['layout'].set('直排')

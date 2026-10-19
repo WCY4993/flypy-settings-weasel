@@ -24,6 +24,14 @@ class PublicTests(unittest.TestCase):
         self.store=Store(self.root)
     def tearDown(self):self.temp.cleanup()
     def args(self):return self.store.appearance,copy.deepcopy(self.store.words.entries),copy.deepcopy(self.store.phrases.entries)
+    def test_multiline_width_saved_and_range_checked(self):
+        catalogue=Catalogue(self.store)
+        item=Setting('weasel','style/layout/max_width',0)
+        for bad in [-1,4001]:
+            with self.assertRaises(SettingsError):catalogue.stage(item,bad)
+        catalogue.stage(item,420)
+        self.store.commit_bytes(catalogue.build({}),'test')
+        self.assertEqual(get_patch(__import__('settings_core').yaml_parser().load((self.root/'weasel.custom.yaml').read_text(encoding='utf-8')),'style/layout/max_width'),420)
     def test_public_personal_tables_are_empty(self):
         self.assertEqual(self.store.words.entries,[]);self.assertEqual(self.store.phrases.entries,[])
     def test_noop_is_exact_and_has_no_backup(self):
