@@ -1,6 +1,6 @@
 {
-  "public_version": "2.2.0",
-  "private_compatibility_version": "2.1.3",
+  "public_version": "2.2.1",
+  "private_compatibility_version": "2.1.4",
   "public_tests": 14,
   "private_tests": 32,
   "public_engine_tests": 16,
@@ -10,6 +10,7 @@
   "generic_personal_words": 0,
   "generic_shortcuts": 0,
   "upstream_commit": "da1fbe602e38f26db846fa10120ee64c2b0324c0",
-  "exe_sha256": "38ffdca3bf7f3524a6dcb45414748777a8cc1766f332742436acaebc9409be74",
-  "reproducible_build_script": true
+  "reproducible_build_script": true,
+  "numeric_candidate_style_checks": 7,
+  "previous_local_test_exe_sha256": "38ffdca3bf7f3524a6dcb45414748777a8cc1766f332742436acaebc9409be74"
 }

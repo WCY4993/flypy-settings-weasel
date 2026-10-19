@@ -20,11 +20,11 @@ from opencc import OpenCC
 from ruamel.yaml import YAML
 from taiwan_text import TaiwanConverter
 
-VERSION = '2.2.0'
+VERSION = '2.2.1'
 FILES = ('weasel.custom.yaml', 'default.custom.yaml',
          'flypy_personal.dict.yaml', 'flypy_phrases.txt')
 OPTIONAL_FILES = ('double_pinyin_flypy.custom.yaml', 'melt_eng.custom.yaml',
-                  'radical_pinyin.custom.yaml', 'flypy_vocabulary_rules.tsv',
+                  'radical_pinyin.custom.yaml', 'lua/flypy_number_style.lua', 'flypy_vocabulary_rules.tsv',
                   'lua/flypy_vocabulary_filter.lua', 'opencc/flypy_s2twp.json', 'opencc/flypy_tw_terms.txt')
 SHIFT_MODES = {
     '上屏候選後切換': 'commit_text',

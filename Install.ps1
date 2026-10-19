@@ -28,6 +28,7 @@ Get-ChildItem -LiteralPath $upstream -File -Filter '*.yaml' | ForEach-Object {Co
 foreach($folder in @('cn_dicts','en_dicts','lua','opencc')){Copy-Item -LiteralPath (Join-Path $upstream $folder) -Destination (Join-Path $UserDir $folder) -Recurse}
 foreach($name in @('default.custom.yaml','weasel.custom.yaml','double_pinyin_flypy.custom.yaml','melt_eng.custom.yaml','radical_pinyin.custom.yaml','flypy_tw.dict.yaml','flypy_personal.dict.yaml','flypy_phrases.txt')){Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination $UserDir}
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'upstream.json') -Destination (Join-Path $UserDir 'flypy-upstream.json')
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'lua\flypy_number_style.lua') -Destination (Join-Path $UserDir 'lua\flypy_number_style.lua') -Force
 if($PrepareOnly){Write-Host "空白個人配置已備妥：$UserDir；尚未切換輸入法或部署。";return}
 $key='HKCU:\Software\Rime\Weasel'
 $old=(Get-ItemProperty -LiteralPath $key -ErrorAction SilentlyContinue).RimeUserDir
