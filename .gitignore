@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.venv/
+build/
+dist/
+*.spec
+*.exe
+*.zip
+*.log
+*.userdb*/
+sync/
+maintenance/
+installation.yaml
+user.yaml

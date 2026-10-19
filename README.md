@@ -65,4 +65,3 @@ Python 3.13，Tkinter/ttk；依賴版本已鎖定。建立虛擬環境後執行 
 ## 授權與來源
 
 本專案以 GPL-3.0 發布，保留同版原始碼與建置腳本。雾凇 YAML／詞庫／Lua 依其上游授權，來源為 [iDvel/rime-ice](https://github.com/iDvel/rime-ice)；完整發行包附上游 LICENSE 與來源說明。第三方套件授權見 `第三方授權.txt`。小狼毫及 librime 不在本專案重新打包，請使用官方安裝程式；OpenCC 轉換資料及 Python 隨 GUI 的套件授權保留。無擔保；問題請在本專案 Issues 回報並先移除個人資料。
-

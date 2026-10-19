@@ -1,0 +1,9 @@
+altgraph==0.17.5
+opencc-python-reimplemented==0.1.7
+packaging==26.3
+pefile==2024.8.26
+pyinstaller==6.22.3
+pyinstaller-hooks-contrib==2026.8
+pywin32-ctypes==0.2.3
+ruamel.yaml==0.19.1
+setuptools==84.0.0

@@ -1,0 +1,25 @@
+patch:
+  schema_list:
+  - schema: double_pinyin_flypy
+  menu/page_size: 8
+  switcher/caption: 小鶴雙拼
+  switcher/fold_options: false
+  ascii_composer/good_old_caps_lock: true
+  ascii_composer/switch_key:
+    Caps_Lock: clear
+    Shift_L: commit_text
+    Shift_R: commit_text
+    Control_L: noop
+    Control_R: noop
+  punctuator/half_shape/[: 「
+  punctuator/half_shape/]: 」
+  punctuator/half_shape/{: 『
+  punctuator/half_shape/}: 』
+  punctuator/half_shape/":
+    pair:
+    - 「
+    - 」
+  punctuator/half_shape/':
+    pair:
+    - 『
+    - 』

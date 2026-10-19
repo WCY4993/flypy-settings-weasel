@@ -1,0 +1,30 @@
+name: Build and publish Windows release
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Test and build GUI
+        shell: pwsh
+        run: ./Build.ps1 -Python python
+      - name: Create clean package and checksums
+        shell: pwsh
+        run: python pack_release.py
+      - name: Publish release assets
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = python -c "from settings_core import VERSION; print(VERSION)"
+          if ($LASTEXITCODE) { throw 'Cannot determine release version' }
+          gh release create "v$version" "dist/Flypy-Settings-$version-Windows-x64.zip" "dist/Flypy-Settings-$version-SHA256.txt" --target "$env:GITHUB_SHA" --title "小鶴設定工具 $version · Windows x64" --notes-file RELEASE_NOTES.md
+          if ($LASTEXITCODE) { throw 'Release publication failed' }

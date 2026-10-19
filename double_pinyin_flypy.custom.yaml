@@ -1,0 +1,44 @@
+patch:
+  schema/name: 小鶴雙拼・繁體
+  switches:
+  - name: ascii_mode
+    states:
+    - 中
+    - 英
+  - name: ascii_punct
+    states:
+    - 中文標點
+    - 英文標點
+    reset: 0
+  - name: traditionalization
+    states:
+    - 簡體
+    - 繁體
+    reset: 1
+  - name: emoji
+    states:
+    - 文字
+    - Emoji
+    reset: 0
+  - name: full_shape
+    states:
+    - 半形
+    - 全形
+    reset: 0
+  - name: search_single_char
+    states:
+    - 正常
+    - 單字
+  traditionalize/opencc_config: s2tw.json
+  traditionalize/tags:
+  - abc
+  - number
+  - gregorian_to_lunar
+  - radical_lookup
+  translator/dictionary: flypy_tw
+  translator/user_dict: rime_ice
+  translator/enable_user_dict: true
+  translator/enable_sentence: true
+  radical_reverse_lookup/dictionary: flypy_tw
+  custom_phrase/user_dict: flypy_phrases
+  melt_eng/initial_quality: 0.8

@@ -1,0 +1,6 @@
+# 個人詞庫，公開版本保持空白。詞彙、完整拼音、權重之間使用 Tab。
+---
+name: flypy_personal
+version: "1"
+sort: by_weight
+...

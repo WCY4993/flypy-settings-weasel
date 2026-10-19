@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/iDvel/rime-ice",
+  "commit": "da1fbe602e38f26db846fa10120ee64c2b0324c0",
+  "license": "GPL-3.0",
+  "weasel_tested": "0.17.4",
+  "librime_tested": "1.13.1",
+  "archive_sha256": "ad71f7d8a63f8ae2d29a745d4be87be8827598dec5a18fc23009869fb72329c0"
+}

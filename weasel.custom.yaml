@@ -1,0 +1,10 @@
+patch:
+  style/font_face: Microsoft JhengHei UI, Segoe UI, Segoe UI Emoji
+  style/font_point: 16
+  style/label_font_point: 11
+  style/comment_font_point: 12
+  style/horizontal: false
+  style/inline_preedit: true
+  style/color_scheme: aqua
+  style/color_scheme_dark: dark_temple
+  style/layout/corner_radius: 8
