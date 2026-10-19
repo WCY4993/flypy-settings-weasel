@@ -108,8 +108,6 @@ class Catalogue:
                 raise SettingsError(f'此設定需要 {item.kind}，請保持原本的資料類型。')
         if isinstance(value, float) and (value != value or abs(value) == float('inf')):
             raise SettingsError('數值不能是 NaN 或無限大。')
-        if item.path == 'style/layout/max_width' and not 0 <= value <= 4000:
-            raise SettingsError('候選換行寬度請填 0～4000；0 表示不限制。')
         if item.path == 'menu/page_size' and not 5 <= value <= 9:
             raise SettingsError('每頁候選數請填 5～9。')
         if item.path in ('style/font_point', 'style/label_font_point', 'style/comment_font_point'):

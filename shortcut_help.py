@@ -37,10 +37,6 @@ def manual_rows(documents):
         add('翻頁與快捷鍵',key_name(item.get('accept','未指定')),action or '進階規則：'+str(item),WHEN.get(item.get('when'),str(item.get('when','依配置'))))
     for key,action in schema.get('editor',{}).get('bindings',{}).items():
         add('編輯輸入',key_name(key),ACTIONS.get(action,'原始行為：'+str(action)),'正在組字／選字時')
-    for field,label in [('select_first_character','取目前候選的第一個字'),('select_last_character','取目前候選的最後一個字')]:
-        code=bindings.get(field)
-        if code:add('切換與選字',key_name(code),label,'有候選清單時','這是以詞取字，不是翻頁；實際翻頁鍵請參閱「翻頁與快捷鍵」。')
-    add('工具操作','外觀與按鍵 → 試用多行候選','橫排候選自動換行','小鶴設定工具內','可調整候選換行寬度；0 為單行。先看即時預覽，再儲存並重新部署。每頁候選數不變。')
     names={'date':'今天日期','time':'目前時間','week':'今天星期','datetime':'日期與時間','timestamp':'Unix 時間戳','datezh':'中文日期','dateen':'英文日期'}
     for key,code in schema.get('date_translator',{}).items():
         if key in names:add('日期與工具',str(code),names[key],'中文模式，直接輸入這組字母','從候選清單選擇需要的格式。')
