@@ -16,6 +16,58 @@ from live_preview import documents, rgb
 
 HERE=Path(__file__).parent
 
+class TableViewTests(unittest.TestCase):
+    def setUp(self):
+        import tkinter as tk
+        from tkinter import ttk
+        self.root=tk.Tk();self.root.withdraw()
+        self.header=ttk.Frame(self.root);self.header.pack(fill='x')
+        self.body=ttk.Frame(self.root);self.body.pack(fill='both',expand=True)
+        self.frame=ttk.Frame(self.body);self.frame.pack(fill='both',expand=True)
+        self.tree=ttk.Treeview(self.frame,columns=('word',),show='headings',height=4)
+        self.tree.grid(row=0,column=0,sticky='nsew')
+        self.frame.rowconfigure(0,weight=1);self.frame.columnconfigure(0,weight=1)
+        for i in range(100):self.tree.insert('','end',iid=str(i),values=(f'詞彙{i}',))
+    def tearDown(self):self.root.destroy()
+    def test_new_page_resets_scroll_selection_and_focus(self):
+        from table_view import first_row
+        self.root.deiconify();self.root.update()
+        self.tree.selection_set('99');self.tree.focus('99');self.tree.see('99')
+        self.root.update();self.assertGreater(self.tree.yview()[0],0)
+        self.tree.delete(*self.tree.get_children())
+        for i in range(100):self.tree.insert('','end',iid='new'+str(i),values=(str(i),))
+        first_row(self.tree);self.root.update()
+        self.assertEqual(self.tree.selection(),('new0',))
+        self.assertEqual(self.tree.focus(),'new0')
+        self.assertEqual(self.tree.yview()[0],0)
+    def test_expand_restore_keeps_data_and_pack_order(self):
+        from table_view import install_table_expanders
+        self.root.deiconify();self.root.update()
+        before=[(str(w),dict(w.pack_info())) for w in self.root.pack_slaves()]
+        self.tree.selection_set('40');self.tree.focus('40')
+        install_table_expanders(self.body);expander=self.tree.expander
+        expander.expand();self.root.update()
+        self.assertFalse(self.header.winfo_ismapped())
+        self.assertTrue(expander.active)
+        self.assertEqual(self.tree.selection(),('40',))
+        expander.escape();self.root.update()
+        self.assertTrue(self.header.winfo_ismapped())
+        self.assertEqual([(str(w),dict(w.pack_info())) for w in self.root.pack_slaves()],before)
+        self.assertEqual(len(self.tree.get_children()),100)
+    def test_changing_tab_restores_normal_view(self):
+        from tkinter import ttk
+        from table_view import install_table_expanders
+        self.root.deiconify();self.root.update()
+        notebook=ttk.Notebook(self.root);notebook.pack()
+        page=ttk.Frame(notebook);other=ttk.Frame(notebook)
+        notebook.add(page,text='表格');notebook.add(other,text='其他')
+        frame=ttk.Frame(page);frame.pack();tree=ttk.Treeview(frame,columns=('word',));tree.pack()
+        install_table_expanders(page);self.root.update()
+        tree.expander.expand();self.root.update()
+        notebook.select(other);self.root.update()
+        self.assertFalse(tree.expander.active)
+        self.assertTrue(self.header.winfo_ismapped())
+
 class PageNavigationTests(unittest.TestCase):
     def test_page_bounds_and_display_numbers(self):
         from settings_pages import vocabulary_page_number
@@ -131,6 +183,19 @@ class PublicTests(unittest.TestCase):
         self.assertIn('lua_filter@*flypy_learning',get_patch(doc,'engine/filters'))
         self.assertEqual((self.root/'flypy_learning.tsv').read_bytes(),before)
         self.assertEqual(prepare_io(self.store,{}),{})
+    def test_english_candidates_default_to_complete_matches_with_literal_spelling(self):
+        from quick_learning import prepare_io
+        changes=prepare_io(self.store,{})
+        self.store.commit_bytes(changes,'English candidates')
+        doc=self.store.read_yaml('double_pinyin_flypy.custom.yaml')
+        self.assertFalse(get_patch(doc,'melt_eng/enable_completion'))
+        self.assertFalse(get_patch(doc,'cn_en/enable_completion'))
+        self.assertTrue(get_patch(doc,'flypy_english/original_first'))
+        filters=get_patch(doc,'engine/filters')
+        self.assertLess(filters.index('lua_filter@*flypy_english'),filters.index('uniquifier'))
+        english=self.store.read_yaml('melt_eng.custom.yaml')
+        self.assertFalse(get_patch(english,'translator/enable_completion'))
+        self.assertIn('lua_filter@*flypy_english',get_patch(english,'engine/filters'))
     def test_exact_traditional_override_survives_save_reload(self):
         rules=Rules(self.store);rules.put(Rule('分布','分布'))
         self.assertEqual(rules.display('分布'),'分布')

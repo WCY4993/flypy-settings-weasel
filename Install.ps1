@@ -29,6 +29,7 @@ foreach($folder in @('cn_dicts','en_dicts','lua','opencc')){Copy-Item -LiteralPa
 foreach($name in @('default.custom.yaml','weasel.custom.yaml','double_pinyin_flypy.custom.yaml','melt_eng.custom.yaml','radical_pinyin.custom.yaml','flypy_tw.dict.yaml','flypy_taiwan.dict.yaml','flypy_personal.dict.yaml','flypy_phrases.txt')){Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination $UserDir}
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'upstream.json') -Destination (Join-Path $UserDir 'flypy-upstream.json')
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'lua\flypy_number_style.lua') -Destination (Join-Path $UserDir 'lua\flypy_number_style.lua') -Force
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'lua\flypy_english.lua') -Destination (Join-Path $UserDir 'lua\flypy_english.lua') -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'lua\flypy_learning.lua') -Destination (Join-Path $UserDir 'lua\flypy_learning.lua') -Force
 if(-not ('Flypy.NativeIo' -as [type])){Add-Type -Namespace Flypy -Name NativeIo -MemberDefinition '[System.Runtime.InteropServices.DllImport("kernel32.dll")] public static extern uint GetACP();'}
 $ioEncoding=[Text.Encoding]::GetEncoding([int][Flypy.NativeIo]::GetACP(),[Text.EncoderFallback]::ExceptionFallback,[Text.DecoderFallback]::ExceptionFallback)

@@ -24,6 +24,8 @@ LABELS = {
  'translator/enable_user_dict': '記憶個人詞頻', 'translator/enable_sentence': '自動組句與長句',
  'translator/enable_word_completion': '未完整輸入時補全詞語',
  'translator/initial_quality': '中文候選的相對優先度', 'translator/spelling_hints': '拼音提示長度',
+ 'melt_eng/enable_completion': '英文長詞自動補全', 'cn_en/enable_completion': '中英混輸長詞自動補全',
+ 'flypy_english/original_first': '英文候選先保留原始大小寫',
  'melt_eng/initial_quality': '英文候選的相對優先度', 'cn_en/initial_quality': '中英混輸優先度',
  'traditionalize/opencc_config': '繁體與台灣用語轉換規則', 'emoji/opencc_config': 'Emoji 對照表',
  'punctuator/half_shape': '中文半形模式標點表', 'punctuator/full_shape': '中文全形模式標點表',
@@ -43,7 +45,7 @@ def category(path):
         return CATEGORIES[2]
     if first in ('switches', 'traditionalize', 'punctuator', 'emoji'):
         return CATEGORIES[3]
-    if first in ('translator', 'melt_eng', 'cn_en', 'custom_phrase', 'pin_cand_filter', 'reduce_english_filter', 'flypy_learning'):
+    if first in ('translator', 'melt_eng', 'cn_en', 'custom_phrase', 'pin_cand_filter', 'reduce_english_filter', 'flypy_learning', 'flypy_english'):
         return CATEGORIES[4]
     if first in ('date_translator', 'lunar', 'lunar_template', 'recognizer', 'radical_lookup', 'radical_reverse_lookup', 'unicode', 'number_translator'):
         return CATEGORIES[5]

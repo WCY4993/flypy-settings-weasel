@@ -54,7 +54,7 @@ def prepare_io(store, changes):
     # Bundle the two small Lua assets so replacing the GUI also upgrades its runtime.
     import sys
     assets = Path(getattr(sys,'_MEIPASS',Path(__file__).parent)) / 'lua'
-    for filename in ('flypy_learning.lua','flypy_number_style.lua'):
+    for filename in ('flypy_learning.lua','flypy_number_style.lua','flypy_english.lua'):
         asset = assets / filename
         name_in_store = 'lua/' + filename
         if asset.is_file() and name_in_store in store.raw:
@@ -83,15 +83,34 @@ def prepare_io(store, changes):
         compiled=store.root/'build/double_pinyin_flypy.schema.yaml'
         filters=yaml_parser().load(compiled.read_text(encoding='utf-8-sig')).get('engine',{}).get('filters',[]) if compiled.is_file() else []
     filters=list(filters)
-    for member in ('lua_filter@*flypy_learning',FILTER):
+    for member in ('lua_filter@*flypy_learning','lua_filter@*flypy_english',FILTER):
         if member not in filters:
             position=filters.index('uniquifier') if 'uniquifier' in filters else len(filters)
             filters.insert(position,member)
     if filters.index('lua_filter@*flypy_learning')>filters.index(FILTER):
         filters.remove('lua_filter@*flypy_learning');filters.insert(filters.index(FILTER),'lua_filter@*flypy_learning')
+    if filters.index('lua_filter@*flypy_english')>filters.index(FILTER):
+        filters.remove('lua_filter@*flypy_english');filters.insert(filters.index(FILTER),'lua_filter@*flypy_english')
     if filters != get_patch(doc,'engine/filters'):
         set_patch(doc,'engine/filters',filters)
         result['double_pinyin_flypy.custom.yaml'] = dump_yaml(doc).encode('utf-8')
+    for path, value in [('melt_eng/enable_completion',False),('cn_en/enable_completion',False),('flypy_english/original_first',True)]:
+        if get_patch(doc,path) is None:
+            set_patch(doc,path,value)
+            result[name] = dump_yaml(doc).encode('utf-8')
+    english_name = 'melt_eng.custom.yaml'
+    english_raw = result.get(english_name,store.raw.get(english_name))
+    if english_raw:
+        english_doc = yaml_parser().load(english_raw.decode('utf-8-sig'))
+        changed = False
+        if get_patch(english_doc,'translator/enable_completion') is None:
+            set_patch(english_doc,'translator/enable_completion',False); changed = True
+        english_filters = list(get_patch(english_doc,'engine/filters') or ['uniquifier'])
+        if 'lua_filter@*flypy_english' not in english_filters:
+            position = english_filters.index('uniquifier') if 'uniquifier' in english_filters else len(english_filters)
+            english_filters.insert(position,'lua_filter@*flypy_english')
+            set_patch(english_doc,'engine/filters',english_filters); changed = True
+        if changed: result[english_name] = dump_yaml(english_doc).encode('utf-8')
     if get_patch(doc,'flypy_learning/io_path_hex') != encoded or get_patch(doc,'flypy_learning/io_path_utf8_hex') != str(store.root).encode('utf-8').hex():
         set_patch(doc,'flypy_learning/io_path_hex',encoded)
         set_patch(doc,'flypy_learning/io_path_utf8_hex',str(store.root).encode('utf-8').hex())

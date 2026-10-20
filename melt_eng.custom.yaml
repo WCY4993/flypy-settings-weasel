@@ -1,4 +1,6 @@
 patch:
+  translator/enable_completion: false
+  engine/filters: ["lua_filter@*flypy_english", "uniquifier"]
   speller/algebra:
   - derive/1([4-7|9])/$1teen/
   - derive/11/eleven/

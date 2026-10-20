@@ -41,6 +41,9 @@ patch:
   translator/enable_sentence: true
   radical_reverse_lookup/dictionary: flypy_tw
   custom_phrase/user_dict: flypy_phrases
+  melt_eng/enable_completion: false
+  cn_en/enable_completion: false
+  flypy_english/original_first: true
   melt_eng/initial_quality: 0.8
   engine/filters:
   - "lua_filter@*corrector"

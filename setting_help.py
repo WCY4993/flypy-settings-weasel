@@ -3,6 +3,8 @@ import re
 
 # Short label, followed by the effect rather than a literal word-for-word gloss.
 HELP = {
+ 'flypy_english': ('精簡英文候選', '完整英文優先提供原始大小寫及標準名稱；長詞補全可另外開啟。'),
+ 'original_first': ('英文先保留原始大小寫', '完整匹配英文名稱時，先列出你輸入的寫法，再列標準名稱。例如 github、GitHub；不把英文候選移到中文候選之前。'),
  'io_path_utf8_hex': ('Unicode 路徑相容資料（自動管理）', '供 UTF-8 主機中的 Lua 檔案讀寫使用，由工具自動更新，請勿手動修改。'),
  'io_path_hex': ('Windows 路徑相容資料（自動管理）', '供舊式 Lua 檔案讀寫使用；工具依目前資料路徑與 Windows 編碼自動產生，請勿手動修改。這不是輸入或學習規則。'),
  'flypy_learning': ('快速學習與原字形保存', '手動改選立即優先；詞彙不會因久未使用自動刪除。這是參考 Apple 公開行為的自訂規則。'),
@@ -224,7 +226,7 @@ MODULES={'ascii_composer':'中英切換','recognizer':'輸入類型辨識','key_
  'date_translator':'日期與時間','lunar':'農曆','number_translator':'中文數字與金額','unicode':'Unicode 查字',
  'calc_translator':'計算機','force_gc':'Lua 記憶體回收','corrector':'拼音糾錯提示','autocap_filter':'英文大小寫',
  'pin_cand_filter':'固定優先候選','reduce_english_filter':'降低英文干擾','traditionalize':'繁簡轉換','emoji':'Emoji 候選',
- 'search':'查字搜尋','select_character':'詞中取字','radical_reverse_lookup':'拆字拼音提示','flypy_vocabulary_filter':'個人詞彙調整'}
+ 'search':'查字搜尋','select_character':'詞中取字','radical_reverse_lookup':'拆字拼音提示','flypy_vocabulary_filter':'個人詞彙調整','flypy_english':'精簡英文候選'}
 
 def shown_value(value):
     if value is True: return '開啟'

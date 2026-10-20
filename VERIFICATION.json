@@ -1,7 +1,7 @@
 {
-  "public_version": "2.2.6",
-  "private_compatibility_version": "2.1.10",
-  "public_tests": 30,
+  "public_version": "2.2.7",
+  "private_compatibility_version": "2.1.11",
+  "public_tests": 34,
   "private_tests": 32,
   "public_engine_tests": 16,
   "private_data_in_public_config": false,
@@ -27,5 +27,8 @@
   "partial_composition_and_separator_engine_checks": true,
   "taiwan_variant_engine_checks": true,
   "email_url_passthrough_engine_checks": true,
-  "direct_page_navigation_checks": true
+  "direct_page_navigation_checks": true,
+  "page_scroll_selection_reset_checks": true,
+  "in_place_table_expansion_checks": true,
+  "compact_english_candidates_engine_checks": true
 }

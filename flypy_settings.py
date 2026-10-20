@@ -221,6 +221,7 @@ class App(tk.Tk):
         ttk.Label(directory, text=f'目前資料夾：{self.store.root}', style='Muted.TLabel', wraplength=740).pack(side='left', fill='x', expand=True, padx=(0, 12))
         # Footer is packed before expandable content, so controls remain visible at high DPI.
         footer = ttk.Frame(self, padding=(20, 12))
+        footer._table_zoom_keep = True
         footer.pack(side='bottom', fill='x')
         ttk.Label(footer, textvariable=self.status, style='Muted.TLabel', wraplength=560).pack(anchor='w', pady=(0, 10))
         ttk.Button(footer, text='重新讀取', command=self.reload).pack(side='left')
@@ -243,6 +244,8 @@ class App(tk.Tk):
         self.make_backups()
         self.help_page = ShortcutHelpPage(self.tabs, self)
         self.tabs.add(self.help_page, text="快捷鍵對照表")
+        from table_view import install_table_expanders
+        install_table_expanders(self)
         self.fill()
         self.protocol('WM_DELETE_WINDOW', self.close)
         self.bind('<Control-s>', lambda event: self.save(False))

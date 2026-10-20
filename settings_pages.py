@@ -16,6 +16,7 @@ from quick_learning import records as quick_records, row_text
 from setting_help import info, shown_value, VALUES
 from taiwan_text import CONVERSION_CHOICES
 from live_preview import LivePreview, preview_kind
+from table_view import first_row, install_table_expanders
 
 def vocabulary_page_number(value, matches):
     """Validate the displayed one-based page and return its zero-based offset."""
@@ -73,6 +74,7 @@ class StructureEditor(ttk.Frame):
         self.tree.configure(yscrollcommand=bar.set)
         bar.pack(side='right', fill='y'); self.tree.pack(fill='both', expand=True)
         self.tree.bind('<Double-1>', lambda e: self.edit())
+        install_table_expanders(self)
         self.tree.bind('<<TreeviewSelect>>',lambda e:self.describe())
         self.render()
 
@@ -338,6 +340,7 @@ class AdvancedPage(ttk.Frame):
         ttk.Entry(row, textvariable=self.search).pack(side='left', fill='x', expand=True, padx=8)
         ttk.Combobox(row, textvariable=self.scope, values=['全部範圍'] + list(SCOPES.values()), state='readonly', width=18).pack(side='right')
         buttons = ttk.Frame(self); buttons.pack(side='bottom', fill='x', pady=(12, 0))
+        buttons._table_zoom_keep = True
         ttk.Button(buttons, text='編輯選取', command=self.edit).pack(side='left')
         ttk.Button(buttons, text='取消未儲存調整', command=self.reset).pack(side='left', padx=8)
         ttk.Button(buttons, text='新增進階設定…', command=self.add).pack(side='left')
@@ -350,6 +353,7 @@ class AdvancedPage(ttk.Frame):
         for name in ['常用設定'] + CATEGORIES[:-1]:
             self.categories.insert('', 'end', iid=name, text=name)
         self.categories.selection_set('常用設定'); self.categories.pack(side='left', fill='y', padx=(0, 14))
+        self.categories._table_zoom_keep = True
         frame, self.tree = scroll_table(body, [('name', '設定項目', 225), ('value', '目前值', 200), ('scope', '範圍', 135), ('note','用途說明',350), ('path', '原始名稱（查閱用）', 320)])
         frame.pack(side='left', fill='both', expand=True)
         self.tree.bind('<Double-1>', lambda e: self.edit())
@@ -501,6 +505,7 @@ class VocabularyPage(ttk.Frame):
         ttk.Checkbutton(row, text='只看我的調整規則', variable=self.only_rules, command=self.request).pack(side='left', padx=12)
         ttk.Button(row, text='更新詞庫與學習記憶', command=self.refresh).pack(side='right')
         bottom = ttk.Frame(self); bottom.pack(side='bottom', fill='x', pady=(10, 0))
+        bottom._table_zoom_keep = True
         row = ttk.Frame(bottom); row.pack(fill='x')
         for label, command in [('＋ 中文詞', lambda: self.add(True)), ('＋ 英文／捷徑', lambda: self.add(False)), ('編輯選取', self.edit), ('複製為個人詞', self.copy_word), ('移除／隱藏', self.remove), ('取消詞彙規則', self.clear_rule)]:
             ttk.Button(row, text=label, command=command).pack(side='left', padx=(0, 5))
@@ -623,6 +628,7 @@ class VocabularyPage(ttk.Frame):
                         state += '／' + {'normal': '改文字', 'hide': '隱藏', 'pin': '固定首位'}[rule.mode]
                     word = row_text(self.rules, r)
                     self.tree.insert('', 'end', iid=iid, values=(word, r['code'] or '自動注音', r['weight'], r['kind'], r['source'], state))
+                first_row(self.tree)
                 pages = max(1, (count+99)//100)
                 if self.page >= pages:
                     self.page = pages - 1
