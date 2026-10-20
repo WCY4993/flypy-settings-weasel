@@ -10,6 +10,7 @@ import os
 from contextlib import closing
 import threading
 from opencc import OpenCC
+from taiwan_text import TaiwanConverter
 from settings_core import SettingsError, yaml_parser, dump_yaml, set_patch
 
 RULE_FILE = 'flypy_vocabulary_rules.tsv'
@@ -158,6 +159,7 @@ class Index:
         self.path = self.folder / 'vocabulary-v2.sqlite3'
         self.to_source = OpenCC('t2s')  # Search preserves vocabulary, as output does.
         self.to_s = OpenCC('t2s')
+        self.to_tw = TaiwanConverter()
         self.lock = threading.RLock()
 
     def sources(self):
@@ -277,7 +279,7 @@ class Index:
             where.append("source NOT IN ('flypy_personal.dict.yaml','flypy_phrases.txt','flypy_learning.tsv')")
         if text.strip():
             query = text.strip()
-            terms = list(dict.fromkeys([query, self.to_source.convert(query), self.to_s.convert(query), *extra_terms]))
+            terms = list(dict.fromkeys([query, self.to_source.convert(query), self.to_s.convert(query), self.to_tw.convert(query), *extra_terms]))
             parts = []
             for term in terms:
                 escaped = term.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')

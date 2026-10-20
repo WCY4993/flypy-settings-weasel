@@ -548,7 +548,7 @@ class VocabularyPage(ttk.Frame):
                     self.cached_sources = self.index.source_counts()
                 text, kind, enabled, source, page = params
                 query = text.casefold().strip()
-                variants = [query, self.index.to_source.convert(query), self.index.to_s.convert(query)]
+                variants = [query, self.index.to_source.convert(query), self.index.to_s.convert(query), self.index.to_tw.convert(query)]
                 aliases=[key for key,rule in rules.items() if query and any(q in (rule.traditional or rule.replacement).casefold() for q in variants)]
                 variants += aliases
                 personal = [r for r in local if (kind in ('全部', r['kind'])) and enabled != '未啟用' and source in ('全部來源', r['source']) and (not query or any(q in (r['text']+' '+r['code']).casefold() for q in variants))]

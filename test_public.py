@@ -44,6 +44,7 @@ class PublicTests(unittest.TestCase):
         r=index.query(kind='自動學習')[0]
         self.assertEqual({x['text'] for x in r},{'分布','分佈'})
         self.assertEqual(len(r),2)
+        self.assertEqual({x['text'] for x in index.query('分布',kind='自動學習')[0]},{'分布','分佈'})
         self.assertEqual(index.query(exclude_personal=True)[0],[])
     def test_exact_rows_render_without_conversion(self):
         from quick_learning import row_text
@@ -59,7 +60,7 @@ class PublicTests(unittest.TestCase):
         changes=prepare_io(self.store,{})
         self.store.commit_bytes(changes,'test upgrade')
         doc=self.store.read_yaml('double_pinyin_flypy.custom.yaml')
-        self.assertEqual(bytes.fromhex(get_patch(doc,'flypy_learning/io_path_utf8_hex')).decode(),str(self.root))
+        self.assertEqual(bytes.fromhex(get_patch(doc,'flypy_learning/io_path_utf8_hex')).decode(),str(self.store.root))
         self.assertIn('lua_filter@*flypy_learning',get_patch(doc,'engine/filters'))
         self.assertEqual((self.root/'flypy_learning.tsv').read_bytes(),before)
         self.assertEqual(prepare_io(self.store,{}),{})
