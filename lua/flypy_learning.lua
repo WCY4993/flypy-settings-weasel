@@ -153,6 +153,11 @@ function M.func(input, env)
     if text~=c.text then c=ShadowCandidate(c,c.type,text,c.comment) end
     return c
   end
+  -- URLs, email, numeric utilities and punctuation are not phonetic compositions.
+  if not ctx.input:sub(start+1):match("^[a-z' ]+$") then
+    for c in input:iter() do yield(normalize(c)) end
+    return
+  end
   local function add(c, personal)
     c=normalize(c)
     local id=c.start..':'..c._end..':'..c.text
