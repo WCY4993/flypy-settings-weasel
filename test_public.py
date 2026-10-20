@@ -24,6 +24,45 @@ class PublicTests(unittest.TestCase):
         self.store=Store(self.root)
     def tearDown(self):self.temp.cleanup()
     def args(self):return self.store.appearance,copy.deepcopy(self.store.words.entries),copy.deepcopy(self.store.phrases.entries)
+    def test_personal_variants_are_independent_after_reload(self):
+        a,w,p=self.args()
+        w += [self.store.normalize_word(t,'fen bu',10000) for t in ['分布','分佈']]
+        self.store.save(a,w,p)
+        self.assertEqual([e.text for e in self.store.words.entries],['分布','分佈'])
+        self.store.save(a,self.store.words.entries[1:],p)
+        self.assertEqual([e.text for e in self.store.words.entries],['分佈'])
+    def test_learning_journal_replay_keeps_variants_and_partial_append(self):
+        from quick_learning import records
+        (self.root/'flypy_learning.tsv').write_text('t\tffbu\t分布\t1\t0\nt\tffbu\t分佈\t1\t1\nt\tffbu\t分布\t2\t2\ns\tffbu\t分布\t3\t0\nt\tffbu',encoding='utf-8')
+        r=records(self.root)
+        self.assertEqual(len(r),3)
+        self.assertEqual(r[0],('分布','ffbu','選用 2 次；繁體'))
+        self.assertEqual(r[1][0],'分佈')
+    def test_learning_journal_is_indexed_without_duplicate_history(self):
+        (self.root/'flypy_learning.tsv').write_text('t\tffbu\t分布\t1\t0\nt\tffbu\t分布\t2\t1\nt\tffbu\t分佈\t1\t2\n',encoding='utf-8')
+        index=Index(self.root);index.folder=self.root/'cache';index.path=index.folder/'index.sqlite3';index.rebuild()
+        r=index.query(kind='自動學習')[0]
+        self.assertEqual({x['text'] for x in r},{'分布','分佈'})
+        self.assertEqual(len(r),2)
+        self.assertEqual(index.query(exclude_personal=True)[0],[])
+    def test_exact_rows_render_without_conversion(self):
+        from quick_learning import row_text
+        rules=Rules(self.store)
+        self.assertEqual(row_text(rules,dict(text='分布',source='flypy_learning.tsv')),'分布')
+        self.assertEqual(row_text(rules,dict(text='师范',source='flypy_personal.dict.yaml')),'師範')
+        self.assertEqual(row_text(rules,dict(text='分佈',source='flypy_personal.dict.yaml')),'分佈')
+    @unittest.skipUnless(os.name=='nt','Windows CRT path compatibility')
+    def test_runtime_upgrade_preserves_learning_and_prepares_both_encodings(self):
+        from quick_learning import prepare_io
+        (self.root/'flypy_learning.tsv').write_bytes(b't\tsj\tword\t1\t0\n')
+        before=(self.root/'flypy_learning.tsv').read_bytes()
+        changes=prepare_io(self.store,{})
+        self.store.commit_bytes(changes,'test upgrade')
+        doc=self.store.read_yaml('double_pinyin_flypy.custom.yaml')
+        self.assertEqual(bytes.fromhex(get_patch(doc,'flypy_learning/io_path_utf8_hex')).decode(),str(self.root))
+        self.assertIn('lua_filter@*flypy_learning',get_patch(doc,'engine/filters'))
+        self.assertEqual((self.root/'flypy_learning.tsv').read_bytes(),before)
+        self.assertEqual(prepare_io(self.store,{}),{})
     def test_exact_traditional_override_survives_save_reload(self):
         rules=Rules(self.store);rules.put(Rule('分布','分布'))
         self.assertEqual(rules.display('分布'),'分布')
@@ -53,7 +92,7 @@ class PublicTests(unittest.TestCase):
     def test_add_save_backup_restore_preserves_learning(self):
         db=self.root/'rime_ice.userdb';db.mkdir();(db/'sentinel').write_bytes(b'unchanged')
         a,words,phrases=self.args();words.append(self.store.normalize_word('測試詞','ce shi ci',10000));backup=self.store.save(replace(a,font_size=18),words,phrases)
-        self.assertEqual(self.store.words.entries[0].text,'测试词');self.assertEqual(self.store.appearance.font_size,18)
+        self.assertEqual(self.store.words.entries[0].text,'測試詞');self.assertEqual(self.store.appearance.font_size,18)
         self.store.restore(backup);self.assertEqual(self.store.words.entries,[]);self.assertEqual((db/'sentinel').read_bytes(),b'unchanged')
     def test_external_change_is_not_overwritten(self):
         p=self.root/'weasel.custom.yaml';p.write_text(p.read_text(encoding='utf-8')+'\n# external\n',encoding='utf-8')

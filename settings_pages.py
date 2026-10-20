@@ -12,6 +12,7 @@ from tkinter import ttk, messagebox, filedialog, colorchooser
 from advanced_settings import Catalogue, CATEGORIES, SCOPES, Setting, category, LABELS
 from settings_core import SettingsError, dump_yaml, yaml_parser, SHIFT_MODES
 from vocabulary import Index, Rules, Rule, display, refresh_learned
+from quick_learning import records as quick_records, row_text
 from setting_help import info, shown_value, VALUES
 from taiwan_text import CONVERSION_CHOICES
 from live_preview import LivePreview, preview_kind
@@ -440,18 +441,19 @@ class RuleDialog(tk.Toplevel):
     def __init__(self, owner, row, rules):
         super().__init__(owner)
         self.title('調整詞彙'); self.transient(owner); self.grab_set(); self.result = None
-        original = rules.rows.get(row['text'], Rule(row['text']))
+        key = row['text'] if row['text'] in rules.rows else row_text(rules, row)
+        original = rules.rows.get(key, Rule(key))
         self.rules = rules; self.original = original
         frame = ttk.Frame(self, padding=24); frame.pack(fill='both', expand=True)
-        ttk.Label(frame, text=display(rules.store, row['text']), style='Section.TLabel').pack(anchor='w')
+        ttk.Label(frame, text=row_text(rules, row), style='Section.TLabel').pack(anchor='w')
         ttk.Label(frame, text=f"來源：{row['source']}\n輸入碼：{row['code'] or '由字表自動注音'}\n權重／學習次數：{row['weight'] or '依原詞庫'}", style='Muted.TLabel', wraplength=600).pack(anchor='w', pady=12)
         ttk.Label(frame, text='替代顯示文字（空白表示保留原文）').pack(anchor='w')
-        self.text = tk.StringVar(value=rules.output(original))
+        self.text = tk.StringVar(value=rules.output(original) if original.replacement else row_text(rules, row))
         ttk.Entry(frame, textvariable=self.text, width=50).pack(fill='x', pady=(6, 14))
         ttk.Label(frame, text='候選處理').pack(anchor='w')
         self.mode = tk.StringVar(value={'normal': '維持排序', 'pin': '固定首位', 'hide': '隱藏此詞'}[original.mode])
         ttk.Combobox(frame, textvariable=self.mode, values=['維持排序', '固定首位', '隱藏此詞'], state='readonly', width=30).pack(anchor='w', pady=(6, 14))
-        ttk.Label(frame, text='規則套用於小鶴方案中相同文字的所有讀音與來源。\n固定首位會將前 256 項內符合完整輸入的詞放到最前面；多個固定詞依原詞頻排序。\n手填的繁體文字會原樣保留，不再自動改回異體字。\n原始詞庫與學習次數會保留；繁簡切換仍然有效。\n要改拼音、捷徑或個人權重，請用「複製為個人詞」。', style='Muted.TLabel', wraplength=600).pack(anchor='w')
+        ttk.Label(frame, text='隱藏與固定首位依顯示字形分開套用；布／佈等不再互相覆蓋。\n固定首位會將前 256 項內符合完整輸入的詞放到最前面；多個固定詞依原詞頻排序。\n手填的繁體文字會原樣保留，不再自動改回異體字。\n改選一次，下次相同完整輸入優先；固定首位仍優先於學習。\n要改拼音、捷徑或個人權重，請用「複製為個人詞」。', style='Muted.TLabel', wraplength=600).pack(anchor='w')
         buttons = ttk.Frame(frame); buttons.pack(fill='x', pady=(20, 0))
         ttk.Button(buttons, text='取消', command=self.destroy).pack(side='right')
         ttk.Button(buttons, text='完成調整', command=self.submit).pack(side='right', padx=8)
@@ -476,7 +478,7 @@ class VocabularyPage(ttk.Frame):
         self.kind = tk.StringVar(value='全部'); self.enabled = tk.StringVar(value='全部')
         self.source = tk.StringVar(value='全部來源'); self.only_rules = tk.BooleanVar(value=False)
         ttk.Label(self, text='我的詞彙表', style='Section.TLabel').pack(anchor='w')
-        ttk.Label(self, text='中文、英文、混輸、個人詞與學習記憶統一管理。來源不同的同一詞會分列，方便比較讀音與權重。', style='Muted.TLabel', wraplength=950).pack(anchor='w', pady=(6, 10))
+        ttk.Label(self, text='不同字形分別保存；改選一次，下次優先。無標點的 1～12 字完整組字會永久記住，可在此隱藏；長詞可手動新增。', style='Muted.TLabel', wraplength=950).pack(anchor='w', pady=(6, 10))
         filters = ttk.Frame(self); filters.pack(fill='x')
         ttk.Label(filters, text='搜尋').pack(side='left')
         ttk.Entry(filters, textvariable=self.search, width=25).pack(side='left', fill='x', expand=True, padx=8)
@@ -522,6 +524,9 @@ class VocabularyPage(ttk.Frame):
         for table, name, chinese in [(self.app.word_page, 'flypy_personal.dict.yaml', True), (self.app.shortcut_page, 'flypy_phrases.txt', False)]:
             for entry in table.rows:
                 rows.append(dict(id=name + '::' + entry.uid, entry_uid=entry.uid, text=entry.text, code=entry.code, weight=str(entry.weight), kind='個人詞彙', source=name, active=1, chinese=chinese))
+        for n, (text, code, weight) in enumerate(quick_records(self.app.store.root)):
+            rows.append(dict(id='quick-'+str(n), text=text, code=code, weight=weight,
+                             kind='自動學習', source='flypy_learning.tsv', active=1))
         return rows
 
     def request(self, rebuild=False):
@@ -546,7 +551,7 @@ class VocabularyPage(ttk.Frame):
                 variants = [query, self.index.to_source.convert(query), self.index.to_s.convert(query)]
                 aliases=[key for key,rule in rules.items() if query and any(q in (rule.traditional or rule.replacement).casefold() for q in variants)]
                 variants += aliases
-                personal = [r for r in local if (kind in ('全部', '個人詞彙')) and enabled != '未啟用' and source in ('全部來源', r['source']) and (not query or any(q in (r['text']+' '+r['code']).casefold() for q in variants))]
+                personal = [r for r in local if (kind in ('全部', r['kind'])) and enabled != '未啟用' and source in ('全部來源', r['source']) and (not query or any(q in (r['text']+' '+r['code']).casefold() for q in variants))]
                 if only_rules:
                     all_rows = []
                     for key in rules:
@@ -592,7 +597,7 @@ class VocabularyPage(ttk.Frame):
                     state = '已啟用' if r['active'] else '未啟用'
                     if rule:
                         state += '／' + {'normal': '改文字', 'hide': '隱藏', 'pin': '固定首位'}[rule.mode]
-                    word = self.rules.display(r['text'])
+                    word = row_text(self.rules, r)
                     self.tree.insert('', 'end', iid=iid, values=(word, r['code'] or '自動注音', r['weight'], r['kind'], r['source'], state))
                 pages = max(1, (count+99)//100)
                 self.count.configure(text=f'第 {self.page+1}／{pages} 頁 · 符合 {count:,} 筆 · 詞庫共 {total:,} 筆')
@@ -600,7 +605,7 @@ class VocabularyPage(ttk.Frame):
                     self.source_box.configure(values=['全部來源'] + [r[0] for r in counts])
                 folder = self.app.store.root / 'maintenance' / 'learned-export'
                 info = folder / 'export-info.json'
-                self.timestamp.configure(text='學習記憶快照：' + (datetime.fromtimestamp(info.stat().st_mtime).strftime('%Y-%m-%d %H:%M:%S') if info.exists() else '沿用 Rime 同步快照') + '；按「更新詞庫與學習記憶」可讀入後來記住的詞。')
+                self.timestamp.configure(text='快速學習已即時保存；下方為 Rime 原生詞頻快照：' + (datetime.fromtimestamp(info.stat().st_mtime).strftime('%Y-%m-%d %H:%M:%S') if info.exists() else '沿用 Rime 同步快照') + '；按「更新詞庫與學習記憶」可讀入後來記住的詞。')
         except queue.Empty:
             pass
         self.after(120, self.poll)
@@ -640,13 +645,13 @@ class VocabularyPage(ttk.Frame):
         row = self.selected()
         if not row:
             return
-        chinese = bool(row['code'] and ' ' in row['code'] and row['kind'] != '拆字反查') or row['kind'] == '中文'
+        chinese = row['source'] == 'flypy_learning.tsv' or bool(row['code'] and ' ' in row['code'] and row['kind'] != '拆字反查') or row['kind'] == '中文'
         from flypy_settings import EntryDialog
         from settings_core import Entry
         table = self.app.word_page if chinese else self.app.shortcut_page
         # Opening with a draft pre-fills fields; a new ID keeps the original untouched.
         import uuid
-        draft = Entry(uuid.uuid4().hex, row['text'], row['code'], 10000 if chinese else 1)
+        draft = Entry(uuid.uuid4().hex, row['text'], '' if row['source'] == 'flypy_learning.tsv' else row['code'], 10000 if chinese else 1)
         dialog = EntryDialog(self.app, chinese, self.app.store, draft, table.rows)
         self.app.wait_window(dialog)
         if dialog.result:
@@ -660,16 +665,18 @@ class VocabularyPage(ttk.Frame):
             table = self.app.word_page if row['source'] == 'flypy_personal.dict.yaml' else self.app.shortcut_page
             if messagebox.askyesno('移除個人詞', '移除這個個人詞，並隱藏其他來源的同字詞？\n可用「取消詞彙規則」恢復其他來源；儲存前可重新讀取取消。', parent=self):
                 table.rows = [e for e in table.rows if e.uid != row.get('entry_uid')]
-                self.rules.put(Rule(row['text'], '', 'hide'))
+                self.rules.put(Rule(row_text(self.rules, row), '', 'hide'))
                 table.render(); self.app.mark_dirty(); self.request()
         elif messagebox.askyesno('隱藏詞彙', '隱藏小鶴候選中所有來源、所有讀音的這個詞？\n原詞庫與學習次數會保留，可以隨時取消規則。', parent=self):
-            previous = self.rules.rows.get(row['text'], Rule(row['text']))
+            key = row_text(self.rules, row)
+            previous = self.rules.rows.get(key, Rule(key))
             self.rules.put(replace(previous, mode='hide')); self.app.mark_dirty(); self.request()
 
     def clear_rule(self):
         row = self.selected()
-        if row and row['text'] in self.rules.rows:
-            self.rules.rows.pop(row['text']); self.app.mark_dirty(); self.request()
+        key = row['text'] if row and row['text'] in self.rules.rows else row_text(self.rules,row) if row else None
+        if key in self.rules.rows:
+            self.rules.rows.pop(key); self.app.mark_dirty(); self.request()
 
     def refresh(self):
         if self.app.dirty():

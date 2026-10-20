@@ -43,7 +43,7 @@ def category(path):
         return CATEGORIES[2]
     if first in ('switches', 'traditionalize', 'punctuator', 'emoji'):
         return CATEGORIES[3]
-    if first in ('translator', 'melt_eng', 'cn_en', 'custom_phrase', 'pin_cand_filter', 'reduce_english_filter'):
+    if first in ('translator', 'melt_eng', 'cn_en', 'custom_phrase', 'pin_cand_filter', 'reduce_english_filter', 'flypy_learning'):
         return CATEGORIES[4]
     if first in ('date_translator', 'lunar', 'lunar_template', 'recognizer', 'radical_lookup', 'radical_reverse_lookup', 'unicode', 'number_translator'):
         return CATEGORIES[5]
@@ -108,6 +108,10 @@ class Catalogue:
                 raise SettingsError(f'此設定需要 {item.kind}，請保持原本的資料類型。')
         if isinstance(value, float) and (value != value or abs(value) == float('inf')):
             raise SettingsError('數值不能是 NaN 或無限大。')
+        if item.path in ('flypy_learning/io_path_hex','flypy_learning/io_path_utf8_hex'):
+            raise SettingsError('這是工具自動管理的 Windows 路徑相容資料，請勿手動修改。')
+        if item.path == 'flypy_learning/max_word_length' and not 1 <= value <= 128:
+            raise SettingsError('自動保存的最長字數請填 1～128。')
         if item.path == 'menu/page_size' and not 5 <= value <= 9:
             raise SettingsError('每頁候選數請填 5～9。')
         if item.path in ('style/font_point', 'style/label_font_point', 'style/comment_font_point'):

@@ -50,7 +50,8 @@ class EntryDialog(tk.Toplevel):
         self.chinese, self.store, self.original, self.existing = chinese, store, original, existing
         frame = ttk.Frame(self, padding=24)
         frame.pack(fill='both', expand=True)
-        display = owner.vocabulary_page.rules.display(original.text) if original and chinese and hasattr(owner, 'vocabulary_page') else store.to_tw.convert(original.text) if original and chinese else original.text if original else ''
+        from quick_learning import row_text
+        display = row_text(owner.vocabulary_page.rules, dict(text=original.text,source=store.words.name)) if original and chinese and hasattr(owner,'vocabulary_page') else original.text if original else ''
         self.text = tk.StringVar(value=display)
         self.code = tk.StringVar(value=original.code if original else '')
         self.weight = tk.StringVar(value=str(original.weight if original else 10000 if chinese else 1))
@@ -84,12 +85,10 @@ class EntryDialog(tk.Toplevel):
             messagebox.showerror('請檢查詞條', str(error), parent=self)
             return
         if self.chinese and hasattr(self.master, 'vocabulary_page'):
-            from vocabulary import Rule
-            chosen=self.text.get().strip()
             rules=self.master.vocabulary_page.rules
-            if chosen != self.store.to_tw.convert(value.text) or value.text in rules.rows:
-                old=rules.rows.get(value.text)
-                rules.put(Rule(value.text, chosen, old.mode if old and old.mode != 'hide' else 'normal'))
+            if value.text in rules.rows and rules.rows[value.text].mode == 'hide':
+                from dataclasses import replace
+                rules.put(replace(rules.rows[value.text], mode='normal'))
         self.result = value
         self.destroy()
 
@@ -145,7 +144,7 @@ class TablePage(ttk.Frame):
         self.tree.delete(*self.tree.get_children())
         query = self.search.get().strip().casefold()
         for entry in self.rows:
-            display = self.app.vocabulary_page.rules.display(entry.text) if self.chinese and hasattr(self.app, 'vocabulary_page') and hasattr(self.app.vocabulary_page, 'rules') else self.app.store.to_tw.convert(entry.text) if self.chinese else entry.text
+            display = entry.text
             if query and query not in (display + ' ' + entry.text + ' ' + entry.code).casefold():
                 continue
             self.tree.insert('', 'end', iid=entry.uid, values=(display, entry.code, entry.weight))
@@ -479,7 +478,8 @@ class App(tk.Tk):
                 if any(s == scope and (p == path or path.startswith(p + '/')) for s, p in self.advanced_page.catalogue.pending):
                     raise SettingsError('外觀頁與全部設定正在修改同一組設定；請先儲存其中一處，再調整另一處。')
         changes = self.advanced_page.catalogue.build(changes)
-        return self.vocabulary_page.rules.build(changes, self.advanced_page.catalogue)
+        from quick_learning import prepare_io
+        return prepare_io(self.store,self.vocabulary_page.rules.build(changes, self.advanced_page.catalogue))
 
     def save(self, deploy):
         if self.busy:

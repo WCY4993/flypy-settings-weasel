@@ -19,11 +19,12 @@ from datetime import datetime
 from opencc import OpenCC
 from ruamel.yaml import YAML
 from taiwan_text import TaiwanConverter
+from glyph_normalization import normalize_glyphs
 
-VERSION = '2.2.2'
+VERSION = '2.2.3'
 FILES = ('weasel.custom.yaml', 'default.custom.yaml',
          'flypy_personal.dict.yaml', 'flypy_phrases.txt')
-OPTIONAL_FILES = ('double_pinyin_flypy.custom.yaml', 'melt_eng.custom.yaml',
+OPTIONAL_FILES = ('lua/flypy_learning.lua', 'double_pinyin_flypy.custom.yaml', 'melt_eng.custom.yaml',
                   'radical_pinyin.custom.yaml', 'lua/flypy_number_style.lua', 'flypy_vocabulary_rules.tsv',
                   'lua/flypy_vocabulary_filter.lua', 'opencc/flypy_s2twp.json', 'opencc/flypy_tw_terms.txt')
 SHIFT_MODES = {
@@ -240,7 +241,8 @@ class Store:
 
     def normalize_word(self, display_text, code, weight, original=None):
         display_text = display_text.strip()
-        text = original.text if original and display_text == self.to_tw.convert(original.text) else self.to_s.convert(display_text)
+        # Legacy rows survive an unchanged edit; new valid traditional spellings stay exact.
+        text = original.text if original and display_text == original.text else self.to_tw.convert(display_text) if normalize_glyphs(display_text) != display_text else display_text
         return self.make_entry(text, code, weight, True, original)
 
     def make_entry(self, text, code, weight, chinese, original=None):
@@ -427,6 +429,10 @@ class Store:
 
     def deploy(self):
         self.assert_active_user_dir()
+        from quick_learning import prepare_io
+        io_changes = prepare_io(self,{})
+        if io_changes:
+            self.commit_bytes(io_changes,'更新目前電腦的檔案路徑相容資料')
         if not self.weasel_root:
             raise SettingsError('找不到小狼毫程式位置；設定已儲存，請從開始選單重新部署。')
         server, deployer = (self.weasel_root / n for n in ['WeaselServer.exe', 'WeaselDeployer.exe'])

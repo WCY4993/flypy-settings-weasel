@@ -3810,13 +3810,16 @@ local comments = {
 function M.init(env)
   env.converter = Opencc("s2tw.json")
 end
-function M.normalize(text, env)
-  if env.converter then text = env.converter:convert(text) end
+function M.exact(text)
   local out={}
   for _,cp in utf8.codes(text) do
     local ch=utf8.char(cp); out[#out+1]=glyphs[ch] or ch
   end
   return table.concat(out):gsub("叄", "參"):gsub("叁", "參")
+end
+function M.normalize(text, env)
+  if env.converter then text = env.converter:convert(text) end
+  return M.exact(text)
 end
 function M.func(input, env)
   local traditional = env.engine.context:get_option("traditionalization")

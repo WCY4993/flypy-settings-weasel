@@ -12,3 +12,5 @@ sync/
 maintenance/
 installation.yaml
 user.yaml
+
+flypy_learning.tsv
