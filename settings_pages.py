@@ -17,6 +17,18 @@ from setting_help import info, shown_value, VALUES
 from taiwan_text import CONVERSION_CHOICES
 from live_preview import LivePreview, preview_kind
 
+def vocabulary_page_number(value, matches):
+    """Validate the displayed one-based page and return its zero-based offset."""
+    pages = max(1, (matches + 99) // 100)
+    text = value.strip()
+    try:
+        number = int(text) if text.isdecimal() else 0
+    except ValueError:
+        number = 0
+    if not 1 <= number <= pages:
+        raise SettingsError(f'請輸入 1～{pages:,} 之間的整數頁碼。')
+    return number - 1
+
 def position_dialog(dialog, owner, width=None, height=None):
     dialog.update_idletasks()
     width = min(width or dialog.winfo_reqwidth(), dialog.winfo_screenwidth()-80)
@@ -494,9 +506,21 @@ class VocabularyPage(ttk.Frame):
             ttk.Button(row, text=label, command=command).pack(side='left', padx=(0, 5))
         row = ttk.Frame(bottom); row.pack(fill='x', pady=(9, 0))
         self.count = ttk.Label(row, text='正在建立詞彙索引…', style='Muted.TLabel'); self.count.pack(side='left')
+        row = ttk.Frame(bottom); row.pack(fill='x', pady=(6, 0))
         ttk.Button(row, text='匯出全部 CSV', command=self.export).pack(side='right')
-        ttk.Button(row, text='下一頁 ›', command=lambda: self.move(1)).pack(side='right', padx=6)
-        ttk.Button(row, text='‹ 上一頁', command=lambda: self.move(-1)).pack(side='right')
+        self.previous_button = ttk.Button(row, text='‹ 上一頁', command=lambda: self.move(-1))
+        self.previous_button.pack(side='left')
+        ttk.Label(row, text='第').pack(side='left', padx=(12, 4))
+        self.page_input = tk.StringVar(value='1')
+        self.page_entry = ttk.Entry(row, textvariable=self.page_input, width=7, justify='center')
+        self.page_entry.pack(side='left')
+        self.page_entry.bind('<Return>', self.jump)
+        self.page_entry.bind('<KP_Enter>', self.jump)
+        self.page_limit = ttk.Label(row, text='頁／共 1 頁')
+        self.page_limit.pack(side='left', padx=4)
+        ttk.Button(row, text='前往', command=self.jump).pack(side='left', padx=(4, 8))
+        self.next_button = ttk.Button(row, text='下一頁 ›', command=lambda: self.move(1))
+        self.next_button.pack(side='left')
         self.timestamp = ttk.Label(bottom, text='', style='Muted.TLabel'); self.timestamp.pack(anchor='w', pady=(5, 0))
         frame, self.tree = scroll_table(self, [('text', '詞彙（台灣繁體）', 250), ('code', '完整拼音／輸入碼', 230), ('weight', '權重／學習次數', 125), ('kind', '類型', 95), ('source', '來源', 260), ('active', '狀態／調整', 150)])
         frame.pack(fill='both', expand=True)
@@ -600,6 +624,14 @@ class VocabularyPage(ttk.Frame):
                     word = row_text(self.rules, r)
                     self.tree.insert('', 'end', iid=iid, values=(word, r['code'] or '自動注音', r['weight'], r['kind'], r['source'], state))
                 pages = max(1, (count+99)//100)
+                if self.page >= pages:
+                    self.page = pages - 1
+                    self.request()
+                    continue
+                self.page_input.set(str(self.page + 1))
+                self.page_limit.configure(text=f'頁／共 {pages:,} 頁')
+                self.previous_button.configure(state='normal' if self.page else 'disabled')
+                self.next_button.configure(state='normal' if self.page + 1 < pages else 'disabled')
                 self.count.configure(text=f'第 {self.page+1}／{pages} 頁 · 符合 {count:,} 筆 · 詞庫共 {total:,} 筆')
                 if counts is not None:
                     self.source_box.configure(values=['全部來源'] + [r[0] for r in counts])
@@ -618,6 +650,21 @@ class VocabularyPage(ttk.Frame):
         next_page = self.page + delta
         if 0 <= next_page < max(1, (self.total_matches + 99)//100):
             self.page = next_page; self.request()
+
+    def jump(self, _event=None):
+        try:
+            target = vocabulary_page_number(self.page_input.get(), self.total_matches)
+        except SettingsError as error:
+            messagebox.showinfo('頁碼不正確', str(error), parent=self)
+            self.page_entry.focus_set()
+            self.page_entry.selection_range(0, 'end')
+            return 'break'
+        if self.timer:
+            self.after_cancel(self.timer)
+            self.timer = None
+        self.page = target
+        self.request()
+        return 'break'
 
     def add(self, chinese):
         table = self.app.word_page if chinese else self.app.shortcut_page

@@ -89,3 +89,5 @@ Python 3.13，Tkinter/ttk；依賴版本已鎖定。建立虛擬環境後執行 
 資料鎖定與 SHA256 見 `taiwan-upstream.json`，授權全文見 `licenses/McBopomofo-MIT.txt`。建置時 `build_taiwan_dictionary.py` 下載並驗證固定來源，再產生詞庫；生成檔隨執行檔、Release 安裝包發布。原始碼 checkout 請先建置，單獨執行安裝器前也可先執行此產生程式。公開原始碼不收錄任何本機個人字詞或學習資料。
 
 2.2.5 補上 Email、URL、數字與標點的組詞範圍檢查，避免個人拼音前綴誤插入這些候選。
+
+2.2.6 起，「我的詞彙表」底部可直接輸入頁碼，按 Enter 或「前往」跳轉；總頁數依目前搜尋／分類更新。

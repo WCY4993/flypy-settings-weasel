@@ -16,6 +16,40 @@ from live_preview import documents, rgb
 
 HERE=Path(__file__).parent
 
+class PageNavigationTests(unittest.TestCase):
+    def test_page_bounds_and_display_numbers(self):
+        from settings_pages import vocabulary_page_number
+        self.assertEqual(vocabulary_page_number(' 18 ',132367),17)
+        self.assertEqual(vocabulary_page_number('1324',132367),1323)
+        self.assertEqual(vocabulary_page_number('１',0),0)
+        for value in ['', '0', '-1', '1325', '1.5', 'abc', '9'*5000]:
+            with self.subTest(value=value[:20]),self.assertRaises(SettingsError):
+                vocabulary_page_number(value,132367)
+
+    def test_jump_cancels_pending_search_and_keeps_current_filters(self):
+        from settings_pages import VocabularyPage
+        from types import SimpleNamespace
+        from unittest.mock import Mock
+        page=SimpleNamespace(page_input=Mock(get=lambda:'18'),total_matches=132367,
+                             timer='pending',page=0,after_cancel=Mock(),request=Mock())
+        self.assertEqual(VocabularyPage.jump(page),'break')
+        self.assertEqual(page.page,17)
+        page.after_cancel.assert_called_once_with('pending')
+        self.assertIsNone(page.timer)
+        page.request.assert_called_once_with()
+
+    def test_invalid_jump_preserves_current_page(self):
+        from settings_pages import VocabularyPage
+        from types import SimpleNamespace
+        from unittest.mock import Mock
+        page=SimpleNamespace(page_input=Mock(get=lambda:'0'),total_matches=201,
+                             page=1,page_entry=Mock(),request=Mock())
+        with patch('settings_pages.messagebox.showinfo') as info:
+            self.assertEqual(VocabularyPage.jump(page),'break')
+        self.assertEqual(page.page,1)
+        page.request.assert_not_called()
+        info.assert_called_once()
+
 class PublicTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.root=Path(self.temp.name)

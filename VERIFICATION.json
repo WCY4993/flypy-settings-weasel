@@ -1,7 +1,7 @@
 {
-  "public_version": "2.2.5",
-  "private_compatibility_version": "2.1.9",
-  "public_tests": 27,
+  "public_version": "2.2.6",
+  "private_compatibility_version": "2.1.10",
+  "public_tests": 30,
   "private_tests": 32,
   "public_engine_tests": 16,
   "private_data_in_public_config": false,
@@ -26,5 +26,6 @@
   "taiwan_source_commit": "be6564acad6c4d3265c34a2e1a872d80f9db6068",
   "partial_composition_and_separator_engine_checks": true,
   "taiwan_variant_engine_checks": true,
-  "email_url_passthrough_engine_checks": true
+  "email_url_passthrough_engine_checks": true,
+  "direct_page_navigation_checks": true
 }
