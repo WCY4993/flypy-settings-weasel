@@ -52,6 +52,39 @@ class PublicTests(unittest.TestCase):
         self.assertEqual(row_text(rules,dict(text='分布',source='flypy_learning.tsv')),'分布')
         self.assertEqual(row_text(rules,dict(text='师范',source='flypy_personal.dict.yaml')),'師範')
         self.assertEqual(row_text(rules,dict(text='分佈',source='flypy_personal.dict.yaml')),'分佈')
+        self.assertEqual(row_text(rules,dict(text='台灣',source='flypy_taiwan.dict.yaml')),'台灣')
+
+    def test_taiwan_dictionary_upgrade_preserves_imports_and_personal_words(self):
+        from quick_learning import prepare_io
+        a,w,p=self.args()
+        w.append(self.store.normalize_word('台','tai',10000))
+        self.store.save(a,w,p)
+        before=self.store.raw['flypy_personal.dict.yaml']
+        changes=prepare_io(self.store,{})
+        self.store.commit_bytes(changes,'Taiwan dictionary upgrade')
+        self.assertEqual(self.store.raw['flypy_personal.dict.yaml'],before)
+        from settings_core import yaml_parser
+        imports=yaml_parser().load(self.store.raw['flypy_tw.dict.yaml'].decode('utf-8'))['import_tables']
+        self.assertEqual(imports.count('flypy_taiwan'),1)
+        self.assertIn('cn_dicts/base',imports)
+        self.assertEqual(prepare_io(self.store,{}),{})
+
+    def test_taiwan_dictionary_is_indexed_as_independent_spellings(self):
+        (self.root/'flypy_taiwan.dict.yaml').write_text('---\nname: flypy_taiwan\n...\n台灣\ttai wan\t100\n臺灣\ttai wan\t80\n台\ttai\t100\n',encoding='utf-8')
+        index=Index(self.root);index.folder=self.root/'cache';index.path=index.folder/'index.sqlite3';index.rebuild()
+        rows=index.query(kind='台灣詞庫')[0]
+        self.assertEqual({r['text'] for r in rows},{'台灣','臺灣','台'})
+
+    def test_taiwan_source_retains_required_words_and_no_simplified_only_glyphs(self):
+        from glyph_normalization import normalize_glyphs
+        words={}
+        for line in (HERE/'flypy_taiwan.dict.yaml').read_text(encoding='utf-8').splitlines():
+            if '\t' in line:
+                text,code,weight=line.split('\t')
+                self.assertEqual(normalize_glyphs(text),text)
+                words.setdefault(text,set()).add(code)
+        for text,code in [('台灣','tai wan'),('臺灣','tai wan'),('網路','wang lu'),('資訊','zi xun'),('捷運','jie yun')]:
+            self.assertIn(code,words[text])
     @unittest.skipUnless(os.name=='nt','Windows CRT path compatibility')
     def test_runtime_upgrade_preserves_learning_and_prepares_both_encodings(self):
         from quick_learning import prepare_io

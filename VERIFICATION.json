@@ -1,7 +1,7 @@
 {
-  "public_version": "2.2.3",
-  "private_compatibility_version": "2.1.7",
-  "public_tests": 24,
+  "public_version": "2.2.4",
+  "private_compatibility_version": "2.1.8",
+  "public_tests": 27,
   "private_tests": 32,
   "public_engine_tests": 16,
   "private_data_in_public_config": false,
@@ -20,5 +20,10 @@
   "independent_spelling_variants": true,
   "persistent_exact_learning_journal": true,
   "unicode_data_directory_engine_check": true,
-  "fresh_learning_store_engine_check": true
+  "fresh_learning_store_engine_check": true,
+  "taiwan_dictionary_entries": 156216,
+  "taiwan_dictionary_spellings": 154031,
+  "taiwan_source_commit": "be6564acad6c4d3265c34a2e1a872d80f9db6068",
+  "partial_composition_and_separator_engine_checks": true,
+  "taiwan_variant_engine_checks": true
 }

@@ -3,5 +3,5 @@ name: flypy_tw
 version: "1"
 sort: by_weight
 use_preset_vocabulary: false
-import_tables: [cn_dicts/8105, flypy_personal, cn_dicts/base, cn_dicts/ext, cn_dicts/others]
+import_tables: [cn_dicts/8105, flypy_taiwan, flypy_personal, cn_dicts/base, cn_dicts/ext, cn_dicts/others]
 ...

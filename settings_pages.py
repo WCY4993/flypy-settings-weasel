@@ -482,7 +482,7 @@ class VocabularyPage(ttk.Frame):
         filters = ttk.Frame(self); filters.pack(fill='x')
         ttk.Label(filters, text='搜尋').pack(side='left')
         ttk.Entry(filters, textvariable=self.search, width=25).pack(side='left', fill='x', expand=True, padx=8)
-        ttk.Combobox(filters, textvariable=self.kind, values=['全部', '中文', '英文', '中英混輸', '個人詞彙', '自動學習', '拆字反查'], width=11, state='readonly').pack(side='left', padx=5)
+        ttk.Combobox(filters, textvariable=self.kind, values=['全部', '台灣詞庫', '中文', '英文', '中英混輸', '個人詞彙', '自動學習', '拆字反查'], width=11, state='readonly').pack(side='left', padx=5)
         ttk.Combobox(filters, textvariable=self.enabled, values=['全部', '已啟用', '未啟用'], width=9, state='readonly').pack(side='left')
         row = ttk.Frame(self); row.pack(fill='x', pady=8)
         self.source_box = ttk.Combobox(row, textvariable=self.source, values=['全部來源'], state='readonly', width=44); self.source_box.pack(side='left')
@@ -645,7 +645,7 @@ class VocabularyPage(ttk.Frame):
         row = self.selected()
         if not row:
             return
-        chinese = row['source'] == 'flypy_learning.tsv' or bool(row['code'] and ' ' in row['code'] and row['kind'] != '拆字反查') or row['kind'] == '中文'
+        chinese = row['source'] == 'flypy_learning.tsv' or bool(row['code'] and ' ' in row['code'] and row['kind'] != '拆字反查') or row['kind'] in ('中文', '台灣詞庫')
         from flypy_settings import EntryDialog
         from settings_core import Entry
         table = self.app.word_page if chinese else self.app.shortcut_page

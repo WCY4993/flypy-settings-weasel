@@ -204,7 +204,7 @@ class Index:
         result = []
         for path in sorted(set(paths)):
             rel = path.relative_to(self.root).as_posix()
-            kind = '自動學習' if rel == 'flypy_learning.tsv' or 'learned-export/' in rel or rel.endswith('.userdb.txt') else '個人詞彙' if rel.startswith('flypy_') else '英文' if '/en' in rel or rel.startswith('melt_eng') else '中英混輸' if 'cn_en' in rel else '拆字反查' if rel.startswith('radical') else '中文'
+            kind = '台灣詞庫' if rel == 'flypy_taiwan.dict.yaml' else '自動學習' if rel == 'flypy_learning.tsv' or 'learned-export/' in rel or rel.endswith('.userdb.txt') else '個人詞彙' if rel.startswith('flypy_') else '英文' if '/en' in rel or rel.startswith('melt_eng') else '中英混輸' if 'cn_en' in rel else '拆字反查' if rel.startswith('radical') else '中文'
             enabled = rel in active or kind == '自動學習' or rel == 'flypy_personal.dict.yaml'
             result.append((path, rel, kind, enabled))
         return result

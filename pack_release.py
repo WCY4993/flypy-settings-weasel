@@ -28,6 +28,7 @@ def main():
         for name in tracked:
             if name and name!='VERIFICATION.json':out.write(ROOT/name,name)
         out.writestr('VERIFICATION.json',json.dumps(verification,ensure_ascii=False,indent=2)+'\n')
+        out.write(ROOT/'flypy_taiwan.dict.yaml','flypy_taiwan.dict.yaml')
         out.write(exe,'小鶴設定工具.exe')
         with zipfile.ZipFile(io.BytesIO(data)) as upstream:
             prefix=f"rime-ice-{lock['commit']}/"

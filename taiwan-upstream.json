@@ -1,0 +1,10 @@
+{
+  "repository": "https://github.com/openvanilla/McBopomofo",
+  "commit": "be6564acad6c4d3265c34a2e1a872d80f9db6068",
+  "files": {
+    "BPMFBase.txt": "46e64a53dc9c6baa2cbe6e0b1af572f8ef6aafb50597178b5fd53df804316ce7",
+    "BPMFMappings.txt": "394f3946754ebdd9d5e503f0f94c6977e5e19bd7cab21b4b18a6ea0167e00171",
+    "phrase.occ": "dcd11597090b2bef88fb385bdd567e235ccd916728c84b8d0d3f8069ccfc7b8d",
+    "LICENSE.txt": "72ed32193b0c629def66df63791b2fb125946b593a3251380e6b949488f47b72"
+  }
+}

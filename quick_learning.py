@@ -21,7 +21,7 @@ def records(root):
     return list(latest.values())
 
 def exact_source(source):
-    return source in (JOURNAL, 'flypy_personal.dict.yaml')
+    return source in ('flypy_taiwan.dict.yaml', JOURNAL, 'flypy_personal.dict.yaml')
 
 def row_text(rules, row):
     text = row['text']
@@ -61,6 +61,20 @@ def prepare_io(store, changes):
             data = asset.read_bytes()
             if data != store.raw[name_in_store]:
                 result[name_in_store] = data
+    dictionary = assets.parent / 'flypy_taiwan.dict.yaml'
+    if dictionary.is_file() and 'flypy_taiwan.dict.yaml' in store.raw:
+        data = dictionary.read_bytes()
+        if data != store.raw['flypy_taiwan.dict.yaml']:
+            result['flypy_taiwan.dict.yaml'] = data
+        base_name = 'flypy_tw.dict.yaml'
+        base_raw = result.get(base_name,store.raw.get(base_name))
+        if base_raw:
+            base_doc = yaml_parser().load(base_raw.decode('utf-8-sig'))
+            tables = list(base_doc.get('import_tables',[]))
+            if 'flypy_taiwan' not in tables:
+                tables.insert(1 if tables else 0,'flypy_taiwan')
+                base_doc['import_tables'] = tables
+                result[base_name] = dump_yaml(base_doc).encode('utf-8')
     from vocabulary import LUA, LUA_FILE, FILTER
     if LUA_FILE in store.raw and LUA.encode('utf-8') != store.raw[LUA_FILE]:
         result[LUA_FILE] = LUA.encode('utf-8')

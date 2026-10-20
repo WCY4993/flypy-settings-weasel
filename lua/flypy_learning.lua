@@ -57,6 +57,17 @@ function M.init(env)
   local fresh = not env.state
   if fresh then env.state = {words={},clock=0}; states[env.path]=env.state end
   env.words = env.state.words
+  if not env.state.tw_exact then
+    env.state.tw_exact = {}
+    local dictionary = M.open(env,'flypy_taiwan.dict.yaml','r')
+    if dictionary then
+      for line in dictionary:lines() do
+        local text = line:match('^([^#\t]+)\t')
+        if text then env.state.tw_exact[text] = true end
+      end
+      dictionary:close()
+    end
+  end
   env.to_s = Opencc('t2s.json')
   env.max_length = math.max(1, math.min(128, env.engine.schema.config:get_int('flypy_learning/max_word_length') or 12))
   local file = fresh and M.open(env,'flypy_learning.tsv','r')
@@ -89,7 +100,7 @@ function M.init(env)
     if seg and seg.selected_index > 0 then env.manual = true end
   end)
   env.update = env.engine.context.update_notifier:connect(function(ctx)
-    if ctx.input == '' then env.manual = false end
+    if ctx.input == '' then env.manual = false;env.default_input=nil;env.default_text=nil end
   end)
   env.connection = env.engine.context.commit_notifier:connect(function(ctx)
     local code, text = clean(ctx.input), ctx:get_commit_text()
@@ -100,7 +111,7 @@ function M.init(env)
     local old = bucket(env,mode,code)[text] or {count=0,manual=0}
     local manual = old.manual
     local seg = ctx.composition:back()
-    if env.manual or (seg and seg.selected_index > 0) then
+    if env.manual or (seg and seg.selected_index > 0) or (env.default_input==ctx.input and env.default_text and env.default_text~=text) then
       env.state.clock=env.state.clock+1; manual=env.state.clock
     end
     env.manual = false
@@ -120,48 +131,57 @@ function M.fini(env)
 end
 function M.func(input, env)
   local ctx = env.engine.context
-  local code = clean(ctx.input)
+  local segment = ctx.composition:back()
+  local start = segment and segment.start or 0
   local mode = ctx:get_option('traditionalization') and 't' or 's'
-  local words = env.words[mode..':'..code] or {}
-  local personal = env.personal[code] or {}
-  if next(words)==nil and next(personal)==nil then
-    for c in input:iter() do
-      if mode=='s' then
-        local text=env.to_s:convert(c.text)
-        if text~=c.text then c=ShadowCandidate(c,c.type,text,c.comment) end
-      end
-      yield(c)
-    end
-    return
+  -- Candidate ranges use raw byte offsets, including explicit syllable separators.
+  local code, ends = '', {}
+  for offset=start+1,#ctx.input do
+    local ch=ctx.input:sub(offset,offset)
+    if ch:match('[a-z]') then code=code..ch;ends[#code]=offset
+    elseif (ch=="'" or ch==' ') and #code>0 then ends[#code]=offset end
   end
+  local words=env.words[mode..':'..code] or {}
   local rows, seen = {}, {}
-  local function add(c)
-    if mode=='s' then
-      local text=env.to_s:convert(c.text)
-      if text~=c.text then c=ShadowCandidate(c,c.type,text,c.comment) end
+  local function normalize(c)
+    local text=c.text
+    if mode=='s' then text=env.to_s:convert(text)
+    else
+      local genuine=c:get_genuine()
+      if genuine and env.state.tw_exact[genuine.text] then text=genuine.text end
     end
-    local full = c.start==0 and c._end==#ctx.input
-    local id = c.start..':'..c._end..':'..c.text
-    if seen[id] then return end
-    seen[id] = true
-    local record = full and words[c.text] or nil
-    rows[#rows+1] = {c=c, rank=#rows+1, manual=record and record.manual or 0, count=record and record.count or 0, full=full}
+    if text~=c.text then c=ShadowCandidate(c,c.type,text,c.comment) end
+    return c
   end
-  local preedit = ''
-  local function flush()
-    local function stored(kind,text)
-      local c=Candidate(kind,0,#ctx.input,text,'')
-      c.preedit=preedit
-      add(c)
+  local function add(c, personal)
+    c=normalize(c)
+    local id=c.start..':'..c._end..':'..c.text
+    if seen[id] then
+      if personal then seen[id].personal=math.max(seen[id].personal or 0,personal) end
+      return
     end
-    local ordered = {}
-    for text in pairs(words) do ordered[#ordered+1]=text end
-    table.sort(ordered)
-    for _,text in ipairs(ordered) do stored('flypy_memory',text) end
-    ordered={}
-    for text in pairs(personal) do ordered[#ordered+1]=text end
-    table.sort(ordered)
-    for _,text in ipairs(ordered) do stored('flypy_personal',mode=='t' and text or env.to_s:convert(text)) end
+    local full=c.start==start and c._end==#ctx.input
+    local record=full and words[c.text] or nil
+    local row={c=c,rank=#rows+1,manual=record and record.manual or 0,count=record and record.count or 0,full=full,personal=personal}
+    seen[id]=row;rows[#rows+1]=row
+  end
+  local preedit=''
+  local function flush()
+    for length=#code,2,-1 do
+      local prefix=code:sub(1,length)
+      local memory=env.words[mode..':'..prefix] or {}
+      local personal=env.personal[prefix] or {}
+      local ordered={}
+      for text in pairs(memory) do ordered[#ordered+1]=text end
+      for text in pairs(personal) do if not memory[text] then ordered[#ordered+1]=text end end
+      table.sort(ordered)
+      for _,text in ipairs(ordered) do
+        local c=Candidate('flypy_exact',start,ends[length],text,'')
+        -- An empty preedit lets the engine render the remaining segment correctly.
+        if length==#code then c.preedit=preedit end
+        add(c,personal[text] and 2 or 1)
+      end
+    end
     local latest=0
     for _,r in ipairs(rows) do latest=math.max(latest,r.manual) end
     table.sort(rows,function(a,b)
@@ -171,6 +191,26 @@ function M.func(input, env)
       if a.full~=b.full then return a.full end
       return a.rank<b.rank
     end)
+    if start==0 and env.default_input~=ctx.input then
+      env.default_input=ctx.input;env.default_text=rows[1] and rows[1].c.text or nil
+    end
+    -- Keep two personal partials within reach without displacing the best full words.
+    local partials,promoted={},{}
+    for _,r in ipairs(rows) do
+      if r.personal and not r.full then partials[#partials+1]=r end
+    end
+    table.sort(partials,function(a,b)
+      if a.personal~=b.personal then return a.personal>b.personal end
+      return a.rank<b.rank
+    end)
+    for i=1,math.min(2,#partials) do promoted[i]=partials[i] end
+    for _,r in ipairs(promoted) do
+      for i,item in ipairs(rows) do
+        if item==r and i>3+#promoted then
+          table.remove(rows,i);table.insert(rows,math.min(4+#promoted-1,#rows+1),r);break
+        end
+      end
+    end
     for _,r in ipairs(rows) do yield(r.c) end
   end
   local n=0
@@ -180,14 +220,9 @@ function M.func(input, env)
     if n<=256 then add(c)
     else
       if n==257 then flush() end
+      c=normalize(c)
       local id=c.start..':'..c._end..':'..c.text
-      if not seen[id] then
-        if mode=='s' then
-          local text=env.to_s:convert(c.text)
-          if text~=c.text then c=ShadowCandidate(c,c.type,text,c.comment) end
-        end
-        yield(c)
-      end
+      if not seen[id] then yield(c) end
     end
   end
   if n<=256 then flush() end
