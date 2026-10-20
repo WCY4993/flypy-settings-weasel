@@ -446,20 +446,19 @@ class RuleDialog(tk.Toplevel):
         ttk.Label(frame, text=display(rules.store, row['text']), style='Section.TLabel').pack(anchor='w')
         ttk.Label(frame, text=f"來源：{row['source']}\n輸入碼：{row['code'] or '由字表自動注音'}\n權重／學習次數：{row['weight'] or '依原詞庫'}", style='Muted.TLabel', wraplength=600).pack(anchor='w', pady=12)
         ttk.Label(frame, text='替代顯示文字（空白表示保留原文）').pack(anchor='w')
-        self.text = tk.StringVar(value=display(rules.store, original.replacement))
+        self.text = tk.StringVar(value=rules.output(original))
         ttk.Entry(frame, textvariable=self.text, width=50).pack(fill='x', pady=(6, 14))
         ttk.Label(frame, text='候選處理').pack(anchor='w')
-        self.mode = tk.StringVar(value={'normal': '維持排序', 'pin': '優先顯示', 'hide': '隱藏此詞'}[original.mode])
-        ttk.Combobox(frame, textvariable=self.mode, values=['維持排序', '優先顯示', '隱藏此詞'], state='readonly', width=30).pack(anchor='w', pady=(6, 14))
-        ttk.Label(frame, text='規則套用於小鶴方案中相同文字的所有讀音與來源。\n優先顯示會在前 64 個候選中移到前面。\n原始詞庫與學習次數會保留；繁簡切換仍然有效。\n要改拼音、捷徑或個人權重，請用「複製為個人詞」。', style='Muted.TLabel', wraplength=600).pack(anchor='w')
+        self.mode = tk.StringVar(value={'normal': '維持排序', 'pin': '固定首位', 'hide': '隱藏此詞'}[original.mode])
+        ttk.Combobox(frame, textvariable=self.mode, values=['維持排序', '固定首位', '隱藏此詞'], state='readonly', width=30).pack(anchor='w', pady=(6, 14))
+        ttk.Label(frame, text='規則套用於小鶴方案中相同文字的所有讀音與來源。\n固定首位會將前 256 項內符合完整輸入的詞放到最前面；多個固定詞依原詞頻排序。\n手填的繁體文字會原樣保留，不再自動改回異體字。\n原始詞庫與學習次數會保留；繁簡切換仍然有效。\n要改拼音、捷徑或個人權重，請用「複製為個人詞」。', style='Muted.TLabel', wraplength=600).pack(anchor='w')
         buttons = ttk.Frame(frame); buttons.pack(fill='x', pady=(20, 0))
         ttk.Button(buttons, text='取消', command=self.destroy).pack(side='right')
         ttk.Button(buttons, text='完成調整', command=self.submit).pack(side='right', padx=8)
         position_dialog(self, owner)
     def submit(self):
         text = self.text.get().strip()
-        text = self.rules.store.to_s.convert(text) if text else ''
-        value = Rule(self.original.original, text, {'維持排序': 'normal', '優先顯示': 'pin', '隱藏此詞': 'hide'}[self.mode.get()])
+        value = Rule(self.original.original, text, {'維持排序': 'normal', '固定首位': 'pin', '隱藏此詞': 'hide'}[self.mode.get()])
         try:
             self.rules.put(value)
         except SettingsError as error:
@@ -545,6 +544,8 @@ class VocabularyPage(ttk.Frame):
                 text, kind, enabled, source, page = params
                 query = text.casefold().strip()
                 variants = [query, self.index.to_source.convert(query), self.index.to_s.convert(query)]
+                aliases=[key for key,rule in rules.items() if query and any(q in (rule.traditional or rule.replacement).casefold() for q in variants)]
+                variants += aliases
                 personal = [r for r in local if (kind in ('全部', '個人詞彙')) and enabled != '未啟用' and source in ('全部來源', r['source']) and (not query or any(q in (r['text']+' '+r['code']).casefold() for q in variants))]
                 if only_rules:
                     all_rows = []
@@ -561,9 +562,9 @@ class VocabularyPage(ttk.Frame):
                     # Keep staged personal edits visible without writing them to disk.
                     shown = personal[start:start+100]
                     db_start = max(0, start - len(personal))
-                    fetched, count, total = self.index.query(text, kind, enabled, source, page=0, size=0, exclude_personal=True)
+                    fetched, count, total = self.index.query(text, kind, enabled, source, page=0, size=0, exclude_personal=True, extra_terms=aliases)
                     if len(shown) < 100:
-                        fetched = self._slice_query(text, kind, enabled, source, db_start, 100-len(shown))
+                        fetched = self._slice_query(text, kind, enabled, source, db_start, 100-len(shown), aliases)
                     rows, count = shown + fetched, count + len(personal)
                 counts = self.cached_sources
                 self.messages.put((generation, True, (rows, count, total, counts)))
@@ -571,8 +572,8 @@ class VocabularyPage(ttk.Frame):
                 self.messages.put((generation, False, str(error)))
         self.pool.submit(work)
 
-    def _slice_query(self, text, kind, enabled, source, offset, size):
-        rows, _, _ = self.index.query(text, kind, enabled, source, size=size, exclude_personal=True, offset=offset, include_count=False)
+    def _slice_query(self, text, kind, enabled, source, offset, size, aliases=()):
+        rows, _, _ = self.index.query(text, kind, enabled, source, size=size, exclude_personal=True, offset=offset, include_count=False, extra_terms=aliases)
         return rows
 
     def poll(self):
@@ -590,8 +591,8 @@ class VocabularyPage(ttk.Frame):
                     rule = self.rules.rows.get(r['text'])
                     state = '已啟用' if r['active'] else '未啟用'
                     if rule:
-                        state += '／' + {'normal': '改文字', 'hide': '隱藏', 'pin': '優先'}[rule.mode]
-                    word = display(self.app.store, rule.replacement if rule and rule.replacement else r['text'])
+                        state += '／' + {'normal': '改文字', 'hide': '隱藏', 'pin': '固定首位'}[rule.mode]
+                    word = self.rules.display(r['text'])
                     self.tree.insert('', 'end', iid=iid, values=(word, r['code'] or '自動注音', r['weight'], r['kind'], r['source'], state))
                 pages = max(1, (count+99)//100)
                 self.count.configure(text=f'第 {self.page+1}／{pages} 頁 · 符合 {count:,} 筆 · 詞庫共 {total:,} 筆')
@@ -657,8 +658,10 @@ class VocabularyPage(ttk.Frame):
             return
         if row['source'] in ('flypy_personal.dict.yaml', 'flypy_phrases.txt') and isinstance(row['id'], str):
             table = self.app.word_page if row['source'] == 'flypy_personal.dict.yaml' else self.app.shortcut_page
-            if messagebox.askyesno('移除個人詞', '移除這個個人詞條？儲存前可以重新讀取取消。', parent=self):
-                table.rows = [e for e in table.rows if e.uid != row.get('entry_uid')]; table.render(); self.app.mark_dirty(); self.request()
+            if messagebox.askyesno('移除個人詞', '移除這個個人詞，並隱藏其他來源的同字詞？\n可用「取消詞彙規則」恢復其他來源；儲存前可重新讀取取消。', parent=self):
+                table.rows = [e for e in table.rows if e.uid != row.get('entry_uid')]
+                self.rules.put(Rule(row['text'], '', 'hide'))
+                table.render(); self.app.mark_dirty(); self.request()
         elif messagebox.askyesno('隱藏詞彙', '隱藏小鶴候選中所有來源、所有讀音的這個詞？\n原詞庫與學習次數會保留，可以隨時取消規則。', parent=self):
             previous = self.rules.rows.get(row['text'], Rule(row['text']))
             self.rules.put(replace(previous, mode='hide')); self.app.mark_dirty(); self.request()

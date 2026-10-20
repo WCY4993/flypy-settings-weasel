@@ -40,29 +40,29 @@ function M.func(input, env)
   end
   local buffered, pinned, n = {}, {}, 0
   local function transform(cand)
-    local rule = env.rules[cand.text]
+    local rule = env.rules[cand:get_genuine().text] or env.rules[cand.text]
     if rule and rule.mode == "hide" then return nil end
     if rule and rule.text ~= "" then
       local text = env.engine.context:get_option("traditionalization") and rule.tw or rule.text
       if text ~= cand.text then cand = ShadowCandidate(cand, cand.type, text, cand.comment) end
     end
-    return cand, rule and rule.mode == "pin"
+    return cand, rule and rule.mode == "pin" and cand._end == #env.engine.context.input
   end
   -- Bound look-ahead to keep long/infinite translations responsive.
   for cand in input:iter() do
     local c, pin = transform(cand)
     n = n + 1
-    if n <= 64 then
+    if n <= 256 then
       if c then table.insert(pin and pinned or buffered, c) end
     else
-      if n == 65 then
+      if n == 257 then
         for _, x in ipairs(pinned) do yield(x) end
         for _, x in ipairs(buffered) do yield(x) end
       end
       if c then yield(c) end
     end
   end
-  if n <= 64 then
+  if n <= 256 then
     for _, x in ipairs(pinned) do yield(x) end
     for _, x in ipairs(buffered) do yield(x) end
   end
@@ -78,6 +78,7 @@ class Rule:
     original: str
     replacement: str = ''
     mode: str = 'normal'
+    traditional: str | None = None
 
 class Rules:
     def __init__(self, store):
@@ -91,17 +92,27 @@ class Rules:
                 fields = line.split('\t')
                 if len(fields) != 5 or fields[2] not in ('normal', 'pin', 'hide'):
                     raise SettingsError('個人詞彙規則格式不正確，未修改檔案。')
-                self.rows[fields[0]] = Rule(*fields[:3])
+                self.rows[fields[0]] = Rule(*fields[:3], traditional=fields[4] if fields[1] else None)
         self.original = dict(self.rows)
 
     def put(self, rule):
-        if not rule.original or rule.mode not in ('normal', 'pin', 'hide') or any(c in rule.original + rule.replacement for c in '\t\r\n\0'):
+        if not rule.original or rule.mode not in ('normal', 'pin', 'hide') or any(c in rule.original + rule.replacement + (rule.traditional or '') for c in '\t\r\n\0'):
             raise SettingsError('詞彙規則不能含 Tab、換行或空字詞。')
-        rule = Rule(rule.original, self.store.to_s.convert(rule.replacement), rule.mode)
+        exact = rule.traditional if rule.traditional is not None else rule.replacement
+        internal = self.store.to_s.convert(rule.original) if rule.replacement and display(self.store, rule.original) == exact else self.store.to_s.convert(rule.replacement)
+        rule = Rule(rule.original, internal, rule.mode,
+                    (rule.traditional if rule.traditional is not None else rule.replacement) if rule.replacement else None)
         if not rule.replacement and rule.mode == 'normal':
             self.rows.pop(rule.original, None)
         else:
             self.rows[rule.original] = rule
+
+    def output(self, rule):
+        return rule.traditional if rule.traditional is not None else display(self.store, rule.replacement)
+
+    def display(self, text):
+        rule = self.rows.get(text)
+        return self.output(rule) if rule and rule.replacement else display(self.store, text)
 
     def build(self, base, catalogue):
         result = dict(base)
@@ -110,7 +121,7 @@ class Rules:
         lines = ['# 原文\t替代文字（內部）\t規則\t台灣顯示原文\t台灣替代文字\n']
         for key in sorted(self.rows):
             rule = self.rows[key]
-            lines.append('\t'.join([key, rule.replacement, rule.mode, display(self.store, key), display(self.store, rule.replacement)]) + '\n')
+            lines.append('\t'.join([key, rule.replacement, rule.mode, display(self.store, key), self.output(rule)]) + '\n')
         result[RULE_FILE] = ''.join(lines).encode('utf-8')
         result[LUA_FILE] = LUA.encode('utf-8')
         name = 'double_pinyin_flypy.custom.yaml'
@@ -252,13 +263,13 @@ class Index:
         finally:
             temp.unlink(missing_ok=True)
 
-    def query(self, text='', kind='全部', enabled='全部', source='全部來源', page=0, size=100, exclude_personal=False, offset=None, include_count=True):
+    def query(self, text='', kind='全部', enabled='全部', source='全部來源', page=0, size=100, exclude_personal=False, offset=None, include_count=True, extra_terms=()):
         where, values = [], []
         if exclude_personal:
             where.append("source NOT IN ('flypy_personal.dict.yaml','flypy_phrases.txt')")
         if text.strip():
             query = text.strip()
-            terms = list(dict.fromkeys([query, self.to_source.convert(query), self.to_s.convert(query)]))
+            terms = list(dict.fromkeys([query, self.to_source.convert(query), self.to_s.convert(query), *extra_terms]))
             parts = []
             for term in terms:
                 escaped = term.replace('\\', '\\\\').replace('%', '\\%').replace('_', '\\_')

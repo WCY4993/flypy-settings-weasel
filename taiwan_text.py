@@ -2,6 +2,7 @@
 import json
 from pathlib import Path
 from opencc import OpenCC
+from glyph_normalization import normalize_glyphs
 
 TERMS = {}  # No implicit regional vocabulary substitutions.
 CONVERSION_CHOICES = {
@@ -35,4 +36,4 @@ class TaiwanConverter:
         import re
         if self.terms:
             text = re.sub('|'.join(re.escape(k) for k in sorted(self.terms, key=len, reverse=True)), lambda m: self.terms[m.group(0)], text)
-        return self.converter.convert(text)
+        return normalize_glyphs(self.converter.convert(text))

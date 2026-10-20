@@ -1,7 +1,7 @@
 {
-  "public_version": "2.2.1",
-  "private_compatibility_version": "2.1.4",
-  "public_tests": 14,
+  "public_version": "2.2.2",
+  "private_compatibility_version": "2.1.6",
+  "public_tests": 19,
   "private_tests": 32,
   "public_engine_tests": 16,
   "private_data_in_public_config": false,
@@ -12,5 +12,8 @@
   "upstream_commit": "da1fbe602e38f26db846fa10120ee64c2b0324c0",
   "reproducible_build_script": true,
   "numeric_candidate_style_checks": 7,
-  "previous_local_test_exe_sha256": "38ffdca3bf7f3524a6dcb45414748777a8cc1766f332742436acaebc9409be74"
+  "full_glyph_audit_records": 2084718,
+  "glyph_guard_unambiguous_mappings": 3800,
+  "remaining_unambiguous_simplified_glyphs": 0,
+  "exact_override_and_learning_engine_checks": true
 }

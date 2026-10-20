@@ -20,7 +20,7 @@ from opencc import OpenCC
 from ruamel.yaml import YAML
 from taiwan_text import TaiwanConverter
 
-VERSION = '2.2.1'
+VERSION = '2.2.2'
 FILES = ('weasel.custom.yaml', 'default.custom.yaml',
          'flypy_personal.dict.yaml', 'flypy_phrases.txt')
 OPTIONAL_FILES = ('double_pinyin_flypy.custom.yaml', 'melt_eng.custom.yaml',

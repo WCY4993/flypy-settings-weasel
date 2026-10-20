@@ -24,6 +24,28 @@ class PublicTests(unittest.TestCase):
         self.store=Store(self.root)
     def tearDown(self):self.temp.cleanup()
     def args(self):return self.store.appearance,copy.deepcopy(self.store.words.entries),copy.deepcopy(self.store.phrases.entries)
+    def test_exact_traditional_override_survives_save_reload(self):
+        rules=Rules(self.store);rules.put(Rule('分布','分布'))
+        self.assertEqual(rules.display('分布'),'分布')
+        changes=rules.build({},Catalogue(self.store));self.store.commit_bytes(changes,'test')
+        again=Rules(self.store)
+        self.assertEqual(again.display('分布'),'分布')
+        self.assertEqual(again.rows['分布'].replacement,'分布')
+        self.assertEqual(again.rows['分布'].traditional,'分布')
+        again.put(Rule('分布','分佈'))
+        self.assertEqual(again.display('分布'),'分佈')
+    def test_explicit_characters_are_not_collapsed(self):
+        rules=Rules(self.store)
+        for target in ['臺灣','台灣','乾','幹','干','佈','布']:
+            rules.put(Rule('測試',target,'pin'))
+            self.assertEqual(rules.output(rules.rows['測試']),target)
+        with self.assertRaises(SettingsError):rules.put(Rule('測試','布','pin',traditional='布\t'))
+    def test_financial_override_keeps_simplified_financial_character(self):
+        rules=Rules(self.store);rules.put(Rule('叁','參'))
+        self.assertEqual(rules.rows['叁'].replacement,'叁')
+        self.assertEqual(rules.display('叁'),'參')
+    def test_general_financial_glyph(self):
+        self.assertEqual(TaiwanConverter().convert('叁叄参'),'參參參')
     def test_public_personal_tables_are_empty(self):
         self.assertEqual(self.store.words.entries,[]);self.assertEqual(self.store.phrases.entries,[])
     def test_noop_is_exact_and_has_no_backup(self):
@@ -73,6 +95,10 @@ class PublicTests(unittest.TestCase):
     def test_manual_follows_changed_shortcuts(self):
         d={'default':{'ascii_composer':{'switch_key':{'Shift_R':'noop'}}},'double_pinyin_flypy':{'key_binder':{'bindings':[{'accept':'Control+Shift+4','toggle':'traditionalization','when':'always'}]},'date_translator':{'date':'today'}}}
         rows=manual_rows(d);self.assertTrue(any('右 Shift' in r[1] and '不切換' in r[2] for r in rows));self.assertTrue(any(r[1]=='today' for r in rows));self.assertTrue(any('繁體' in r[2] for r in rows))
+    def test_search_finds_the_replacement_name(self):
+        (self.root/'cn_dicts').mkdir();(self.root/'cn_dicts/base.dict.yaml').write_text('---\nname: base\n...\n原名\tyuan ming\t100\n',encoding='utf-8')
+        index=Index(self.root);index.folder=self.root/'cache';index.path=index.folder/'index.sqlite3';index.rebuild()
+        self.assertEqual(index.query('新名',extra_terms=['原名'])[0][0]['text'],'原名')
     def test_index_preserves_search_terms_and_english(self):
         (self.root/'cn_dicts').mkdir();(self.root/'cn_dicts/base.dict.yaml').write_text('---\nname: base\n...\n软件\truan jian\t100\n软体\truan ti\t90\n',encoding='utf-8')
         (self.root/'en_dicts').mkdir();(self.root/'en_dicts/en.dict.yaml').write_text('---\nname: en\n...\nHello\thello\t10\n',encoding='utf-8')

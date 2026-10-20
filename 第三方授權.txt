@@ -203,7 +203,7 @@
       of your accepting any such warranty or additional liability.
 
    END OF TERMS AND CONDITIONS
-   
+
 
 
 === pyinstaller 6.22.3 ===
@@ -212,7 +212,7 @@
 ================================
  The PyInstaller licensing terms
 ================================
- 
+
 
 Copyright (c) 2010-2023, PyInstaller Development Team
 Copyright (c) 2005-2009, Giovanni Bajo
@@ -234,8 +234,8 @@ those combinations without any restriction coming from the use of those
 files. (The General Public License restrictions do apply in other respects;
 for example, they cover modification of the files, and distribution when
 not linked into a combined executable.)
- 
- 
+
+
 Bootloader and Related Files
 ----------------------------
 
@@ -1194,16 +1194,16 @@ are met:
 1. Redistributions of source code must retain the above copyright
    notice, this list of conditions and the following disclaimer.
 
-2. The origin of this software must not be misrepresented; you must 
-   not claim that you wrote the original software.  If you use this 
-   software in a product, an acknowledgment in the product 
+2. The origin of this software must not be misrepresented; you must
+   not claim that you wrote the original software.  If you use this
+   software in a product, an acknowledgment in the product
    documentation would be appreciated but is not required.
 
 3. Altered source versions must be plainly marked as such, and must
    not be misrepresented as being the original software.
 
-4. The name of the author may not be used to endorse or promote 
-   products derived from this software without specific prior written 
+4. The name of the author may not be used to endorse or promote
+   products derived from this software without specific prior written
    permission.
 
 THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
@@ -1505,3 +1505,9 @@ authors grant the U.S. Government and others acting in its behalf
 permission to use and distribute the software in accordance with the
 terms specified in this license.
 
+
+
+OpenCC 字形對照資料衍生映射（glyph_normalization.py、lua/flypy_number_style.lua）
+來源：https://github.com/BYVoid/OpenCC
+資料來自隨附 opencc-python-reimplemented 的 STCharacters.txt 與 TWVariants.txt，依 Apache License 2.0 使用。
+本工具排除繁簡共用字及台灣合法字形，僅擷取不歧義的簡體字對照；完整授權文字見本檔 Apache License 區段。
