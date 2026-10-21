@@ -21,10 +21,10 @@ from ruamel.yaml import YAML
 from taiwan_text import TaiwanConverter
 from glyph_normalization import normalize_glyphs
 
-VERSION = '2.2.7'
+VERSION = '2.2.8'
 FILES = ('weasel.custom.yaml', 'default.custom.yaml',
          'flypy_personal.dict.yaml', 'flypy_phrases.txt')
-OPTIONAL_FILES = ('lua/flypy_english.lua', 'flypy_taiwan.dict.yaml', 'flypy_tw.dict.yaml', 'lua/flypy_learning.lua', 'double_pinyin_flypy.custom.yaml', 'melt_eng.custom.yaml',
+OPTIONAL_FILES = ('flypy_taiwan_variants.txt', 'lua/flypy_english.lua', 'flypy_taiwan.dict.yaml', 'flypy_tw.dict.yaml', 'lua/flypy_learning.lua', 'double_pinyin_flypy.custom.yaml', 'melt_eng.custom.yaml',
                   'radical_pinyin.custom.yaml', 'lua/flypy_number_style.lua', 'flypy_vocabulary_rules.tsv',
                   'lua/flypy_vocabulary_filter.lua', 'opencc/flypy_s2twp.json', 'opencc/flypy_tw_terms.txt')
 SHIFT_MODES = {
@@ -440,27 +440,23 @@ class Store:
             raise SettingsError('小狼毫程式檔不存在，無法重新部署。')
         flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
         options = dict(creationflags=flags, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        # Stop/start only Weasel through its supported CLI; no system setting changes.
-        try:
-            subprocess.run([str(server), '/quit'], timeout=15, check=True, **options)
-            result = subprocess.run([str(deployer), '/deploy'], timeout=180, **options)
-            if result.returncode:
-                raise SettingsError(f'部署程式回報失敗（{result.returncode}）。設定已備份，可用「備份與還原」恢復。')
-            expected = self.appearance
-            d = yaml_parser().load((self.root / 'build' / 'default.yaml').read_text(encoding='utf-8-sig'))
-            w = yaml_parser().load((self.root / 'build' / 'weasel.yaml').read_text(encoding='utf-8-sig'))
-            checks = [d['menu']['page_size'] == expected.page_size,
-                      w['style']['font_point'] == expected.font_size,
-                      w['style']['label_font_point'] == expected.label_size,
-                      w['style']['comment_font_point'] == expected.comment_size,
-                      w['style']['font_face'] == expected.font_face,
-                      w['style']['horizontal'] == expected.horizontal,
-                      d['ascii_composer']['switch_key']['Shift_L'] == expected.shift_left,
-                      d['ascii_composer']['switch_key']['Shift_R'] == expected.shift_right]
-            if not all(checks):
-                raise SettingsError('部署後讀回的設定不相符，請查看部署記錄或還原備份。')
-        finally:
-            subprocess.Popen([str(server)], **options)
+        # Official deployer suspends/resumes the existing server through IPC.
+        result = subprocess.run([str(deployer), '/deploy'], timeout=180, **options)
+        if result.returncode:
+            raise SettingsError(f'部署程式回報失敗（{result.returncode}）。設定已備份，可用「備份與還原」恢復。')
+        expected = self.appearance
+        d = yaml_parser().load((self.root / 'build' / 'default.yaml').read_text(encoding='utf-8-sig'))
+        w = yaml_parser().load((self.root / 'build' / 'weasel.yaml').read_text(encoding='utf-8-sig'))
+        checks = [d['menu']['page_size'] == expected.page_size,
+                  w['style']['font_point'] == expected.font_size,
+                  w['style']['label_font_point'] == expected.label_size,
+                  w['style']['comment_font_point'] == expected.comment_size,
+                  w['style']['font_face'] == expected.font_face,
+                  w['style']['horizontal'] == expected.horizontal,
+                  d['ascii_composer']['switch_key']['Shift_L'] == expected.shift_left,
+                  d['ascii_composer']['switch_key']['Shift_R'] == expected.shift_right]
+        if not all(checks):
+            raise SettingsError('部署後讀回的設定不相符，請查看部署記錄或還原備份。')
 
 
 def discover_paths():

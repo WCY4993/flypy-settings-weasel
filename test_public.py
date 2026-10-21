@@ -276,6 +276,18 @@ class PublicTests(unittest.TestCase):
         (self.root/'en_dicts').mkdir();(self.root/'en_dicts/en.dict.yaml').write_text('---\nname: en\n...\nHello\thello\t10\n',encoding='utf-8')
         index=Index(self.root);index.folder=self.root/'cache';index.path=index.folder/'index.sqlite3';index.rebuild()
         self.assertEqual(index.query('軟件')[0][0]['text'],'软件');self.assertEqual(index.query('軟體')[0][0]['text'],'软体');self.assertEqual(index.query('hello')[0][0]['text'],'Hello')
+    def test_failed_deployment_never_restarts_existing_server(self):
+        import subprocess
+        program=self.root/'weasel';program.mkdir()
+        for name in ('WeaselServer.exe','WeaselDeployer.exe'):(program/name).touch()
+        self.store.weasel_root=program
+        with patch.object(self.store,'assert_active_user_dir'), patch('quick_learning.prepare_io',return_value={}):
+            with patch('settings_core.subprocess.run',return_value=subprocess.CompletedProcess([],1)) as deploy:
+                with patch('settings_core.subprocess.Popen') as restart:
+                    with self.assertRaisesRegex(SettingsError,'部署程式回報失敗'):self.store.deploy()
+                    self.assertEqual(deploy.call_args.args[0],[str(program/'WeaselDeployer.exe'),'/deploy'])
+                    restart.assert_not_called()
+
     def test_updater_handles_upstream_tabs_outside_algebra(self):
         source=self.root/'new';source.mkdir()
         for name in ('melt_eng','radical_pinyin'):

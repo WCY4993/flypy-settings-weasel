@@ -26,7 +26,7 @@ if(-not(Test-Path -LiteralPath (Join-Path $upstream 'LICENSE'))){throw '上游�
 New-Item -ItemType Directory -Path $UserDir -Force | Out-Null
 Get-ChildItem -LiteralPath $upstream -File -Filter '*.yaml' | ForEach-Object {Copy-Item -LiteralPath $_.FullName -Destination $UserDir}
 foreach($folder in @('cn_dicts','en_dicts','lua','opencc')){Copy-Item -LiteralPath (Join-Path $upstream $folder) -Destination (Join-Path $UserDir $folder) -Recurse}
-foreach($name in @('default.custom.yaml','weasel.custom.yaml','double_pinyin_flypy.custom.yaml','melt_eng.custom.yaml','radical_pinyin.custom.yaml','flypy_tw.dict.yaml','flypy_taiwan.dict.yaml','flypy_personal.dict.yaml','flypy_phrases.txt')){Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination $UserDir}
+foreach($name in @('default.custom.yaml','weasel.custom.yaml','double_pinyin_flypy.custom.yaml','melt_eng.custom.yaml','radical_pinyin.custom.yaml','flypy_tw.dict.yaml','flypy_taiwan.dict.yaml','flypy_taiwan_variants.txt','flypy_personal.dict.yaml','flypy_phrases.txt')){Copy-Item -LiteralPath (Join-Path $PSScriptRoot $name) -Destination $UserDir}
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'upstream.json') -Destination (Join-Path $UserDir 'flypy-upstream.json')
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'lua\flypy_number_style.lua') -Destination (Join-Path $UserDir 'lua\flypy_number_style.lua') -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'lua\flypy_english.lua') -Destination (Join-Path $UserDir 'lua\flypy_english.lua') -Force

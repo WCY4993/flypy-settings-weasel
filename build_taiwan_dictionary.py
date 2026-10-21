@@ -60,6 +60,8 @@ def build(cache=None):
     header = '# Generated from openvanilla/McBopomofo; see licenses/McBopomofo-MIT.txt\n---\nname: flypy_taiwan\nversion: "'+lock['commit'][:12]+'"\nsort: by_weight\nuse_preset_vocabulary: false\n...\n'
     target=ROOT/'flypy_taiwan.dict.yaml'
     target.write_text(header+''.join(f'{word}\t{code}\t{weight}\n' for (word,code),weight in sorted(rows.items())),encoding='utf-8',newline='\n')
+    variants=sorted({w for w,p in rows if converter.convert(w)!=w})
+    (ROOT/'flypy_taiwan_variants.txt').write_text('# Generated exact-spelling exceptions; see licenses/McBopomofo-MIT.txt\n'+'\n'.join(variants)+'\n',encoding='utf-8',newline='\n')
     return {'entries':len(rows),'spellings':len({w for w,p in rows}),'skipped':skipped,'source_commit':lock['commit'],'sha256':hashlib.sha256(target.read_bytes()).hexdigest()}
 
 if __name__=='__main__':

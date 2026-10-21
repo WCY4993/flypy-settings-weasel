@@ -1,7 +1,7 @@
 {
-  "public_version": "2.2.7",
-  "private_compatibility_version": "2.1.11",
-  "public_tests": 34,
+  "public_version": "2.2.8",
+  "private_compatibility_version": "2.1.12",
+  "public_tests": 35,
   "private_tests": 32,
   "public_engine_tests": 16,
   "private_data_in_public_config": false,
@@ -30,5 +30,11 @@
   "direct_page_navigation_checks": true,
   "page_scroll_selection_reset_checks": true,
   "in_place_table_expansion_checks": true,
-  "compact_english_candidates_engine_checks": true
+  "compact_english_candidates_engine_checks": true,
+  "lazy_candidate_generation": true,
+  "page_bounded_learning_lookahead": true,
+  "compact_variant_index_entries": 1725,
+  "official_ipc_deployment": true,
+  "real_reboot_tested": false,
+  "guarded_optional_logon_helper": true
 }

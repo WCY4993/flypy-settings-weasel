@@ -61,6 +61,11 @@ def prepare_io(store, changes):
             data = asset.read_bytes()
             if data != store.raw[name_in_store]:
                 result[name_in_store] = data
+    variants = assets.parent / 'flypy_taiwan_variants.txt'
+    if not variants.is_file():
+        raise SettingsError('缺少字形保護索引，未更新輸入法。請重新下載完整版本。')
+    if variants.read_bytes() != store.raw.get('flypy_taiwan_variants.txt'):
+        result['flypy_taiwan_variants.txt'] = variants.read_bytes()
     dictionary = assets.parent / 'flypy_taiwan.dict.yaml'
     if dictionary.is_file() and 'flypy_taiwan.dict.yaml' in store.raw:
         data = dictionary.read_bytes()

@@ -5,14 +5,16 @@ local glyph = require('flypy_number_style')
 -- CRT file IO may use the Windows ANSI codepage, while Rime paths are UTF-8.
 -- Try UTF-8 first (UTF-8-aware hosts), then a per-machine path prepared by the app.
 function M.open(env,name,mode)
-  local f,err=io.open(rime_api.get_user_data_dir()..'/'..name,mode)
-  if f then return f end
+  if env.io_root then return io.open(env.io_root..'/'..name,mode) end
+  local root=rime_api.get_user_data_dir()
+  local f,err=io.open(root..'/'..name,mode)
+  if f then env.io_root=root; return f end
   for _,key in ipairs({'flypy_learning/io_path_utf8_hex','flypy_learning/io_path_hex'}) do
     local hex=env.engine.schema.config:get_string(key) or ''
     if #hex>0 and #hex%2==0 and not hex:find('[^0-9a-fA-F]') then
       local path=hex:gsub('..',function(pair) return string.char(tonumber(pair,16)) end)
       f,err=io.open(path..'/'..name,mode)
-      if f then return f end
+      if f then env.io_root=path; return f end
     end
   end
   return nil,err
@@ -59,10 +61,10 @@ function M.init(env)
   env.words = env.state.words
   if not env.state.tw_exact then
     env.state.tw_exact = {}
-    local dictionary = M.open(env,'flypy_taiwan.dict.yaml','r')
+    local dictionary = M.open(env,'flypy_taiwan_variants.txt','r')
     if dictionary then
       for line in dictionary:lines() do
-        local text = line:match('^([^#\t]+)\t')
+        local text = line:match('^([^#\t]+)')
         if text then env.state.tw_exact[text] = true end
       end
       dictionary:close()
@@ -142,6 +144,11 @@ function M.func(input, env)
     elseif (ch=="'" or ch==' ') and #code>0 then ends[#code]=offset end
   end
   local words=env.words[mode..':'..code] or {}
+  local has_exact=false
+  for length=2,#code do
+    local prefix=code:sub(1,length)
+    if env.personal[prefix] or env.words[mode..':'..prefix] then has_exact=true;break end
+  end
   local rows, seen = {}, {}
   local function normalize(c)
     local text=c.text
@@ -158,6 +165,18 @@ function M.func(input, env)
     for c in input:iter() do yield(normalize(c)) end
     return
   end
+  if not has_exact then
+    local first=true
+    for c in input:iter() do
+      c=normalize(c)
+      if first and start==0 and env.default_input~=ctx.input then
+        env.default_input=ctx.input;env.default_text=c.text
+      end
+      first=false;yield(c)
+    end
+    return
+  end
+  local limit=math.max(8,env.engine.schema.config:get_int('menu/page_size') or 8)
   local function add(c, personal)
     c=normalize(c)
     local id=c.start..':'..c._end..':'..c.text
@@ -222,14 +241,14 @@ function M.func(input, env)
   for c in input:iter() do
     n=n+1
     if n==1 then preedit=c.preedit end
-    if n<=256 then add(c)
+    if n<=limit then add(c)
     else
-      if n==257 then flush() end
+      if n==limit+1 then flush() end
       c=normalize(c)
       local id=c.start..':'..c._end..':'..c.text
       if not seen[id] then yield(c) end
     end
   end
-  if n<=256 then flush() end
+  if n<=limit then flush() end
 end
 return M
