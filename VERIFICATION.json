@@ -1,7 +1,7 @@
 {
-  "public_version": "2.2.8",
+  "public_version": "2.2.9",
   "private_compatibility_version": "2.1.12",
-  "public_tests": 35,
+  "public_tests": 36,
   "private_tests": 32,
   "public_engine_tests": 16,
   "private_data_in_public_config": false,
@@ -36,5 +36,6 @@
   "compact_variant_index_entries": 1725,
   "official_ipc_deployment": true,
   "real_reboot_tested": false,
-  "guarded_optional_logon_helper": true
+  "guarded_optional_logon_helper": true,
+  "windows_powershell_51_syntax_check": true
 }

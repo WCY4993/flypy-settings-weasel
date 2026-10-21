@@ -288,6 +288,16 @@ class PublicTests(unittest.TestCase):
                     self.assertEqual(deploy.call_args.args[0],[str(program/'WeaselDeployer.exe'),'/deploy'])
                     restart.assert_not_called()
 
+    @unittest.skipUnless(os.name=='nt','Windows PowerShell compatibility')
+    def test_logon_scripts_parse_in_windows_powershell_51(self):
+        import subprocess
+        shell=Path(os.environ['SystemRoot'])/'System32/WindowsPowerShell/v1.0/powershell.exe'
+        for name in ('Start-WeaselIfNeeded.ps1','Enable-FastStartup.ps1'):
+            path=str(HERE/name).replace("'","''")
+            command="$t=$null;$e=$null;[System.Management.Automation.Language.Parser]::ParseFile('"+path+"',[ref]$t,[ref]$e)|Out-Null;if($e){exit 1}"
+            result=subprocess.run([str(shell),'-NoProfile','-NonInteractive','-Command',command],capture_output=True,timeout=15)
+            self.assertEqual(result.returncode,0,name)
+
     def test_updater_handles_upstream_tabs_outside_algebra(self):
         source=self.root/'new';source.mkdir()
         for name in ('melt_eng','radical_pinyin'):

@@ -21,7 +21,7 @@ from ruamel.yaml import YAML
 from taiwan_text import TaiwanConverter
 from glyph_normalization import normalize_glyphs
 
-VERSION = '2.2.8'
+VERSION = '2.2.9'
 FILES = ('weasel.custom.yaml', 'default.custom.yaml',
          'flypy_personal.dict.yaml', 'flypy_phrases.txt')
 OPTIONAL_FILES = ('flypy_taiwan_variants.txt', 'lua/flypy_english.lua', 'flypy_taiwan.dict.yaml', 'flypy_tw.dict.yaml', 'lua/flypy_learning.lua', 'double_pinyin_flypy.custom.yaml', 'melt_eng.custom.yaml',

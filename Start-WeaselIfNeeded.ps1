@@ -11,9 +11,9 @@ foreach ($view in @([Microsoft.Win32.RegistryView]::Registry32,[Microsoft.Win32.
     } finally { $base.Dispose() }
     if ($installPath) { break }
 }
-if (-not $installPath) { throw '找不到小狼毫安裝位置。' }
+if (-not $installPath) { throw 'Cannot locate the installed Weasel folder.' }
 $serverPath = Join-Path $installPath 'WeaselServer.exe'
-if (-not (Test-Path -LiteralPath $serverPath -PathType Leaf)) { throw '找不到小狼毫服務程式。' }
+if (-not (Test-Path -LiteralPath $serverPath -PathType Leaf)) { throw 'Cannot locate WeaselServer.exe.' }
 # Recheck immediately before launching; never restart a server already in use.
 if (-not (Get-Process WeaselServer -ErrorAction SilentlyContinue | Where-Object SessionId -eq $sessionId)) {
     Start-Process -FilePath $serverPath -WindowStyle Hidden

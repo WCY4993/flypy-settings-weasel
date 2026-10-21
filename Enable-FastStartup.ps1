@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $approved = 'Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run'
 $state = (Get-ItemProperty -LiteralPath $approved -Name WeaselServer -ErrorAction SilentlyContinue).WeaselServer
 if (-not $state -or $state[0] -ne 3) {
-    throw '請先在工作管理員的「啟動應用程式」停用原有 WeaselServer，再執行本工具，以免重複啟動。'
+    throw 'Disable the original WeaselServer startup item in Task Manager before enabling this task, to avoid duplicate starts.'
 }
 $destination = Join-Path $env:LOCALAPPDATA 'FlypySettings'
 New-Item -ItemType Directory -Path $destination -Force | Out-Null
@@ -16,4 +16,4 @@ $trigger = New-ScheduledTaskTrigger -AtLogOn -User $account
 $principal = New-ScheduledTaskPrincipal -UserId $account -LogonType Interactive -RunLevel Limited
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew -ExecutionTimeLimit ([TimeSpan]::Zero)
 Register-ScheduledTask -TaskName 'FlypySettings-WeaselStartup' -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force | Out-Null
-Write-Output '已設定下次登入時啟動小狼毫；未啟動或重啟目前的服務。'
+Write-Output 'Weasel will start at next logon. The current service was not started or restarted.'
