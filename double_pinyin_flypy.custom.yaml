@@ -56,5 +56,6 @@ patch:
   - "lua_filter@*search@radical_pinyin"
   - lua_filter@*flypy_number_style
   - lua_filter@*flypy_learning
+  - lua_filter@*flypy_english
   - uniquifier
   flypy_learning/max_word_length: 12

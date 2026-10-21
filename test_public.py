@@ -7,7 +7,7 @@ import shutil
 import tempfile
 import unittest
 from unittest.mock import patch
-from settings_core import Store, FILES, get_patch, set_patch, dump_yaml, SettingsError, refresh_flypy_patches
+from settings_core import Store, FILES, get_patch, set_patch, dump_yaml, yaml_parser, SettingsError, refresh_flypy_patches
 from taiwan_text import TaiwanConverter
 from advanced_settings import Catalogue, Setting
 from vocabulary import Index, Rules, Rule, RULE_FILE, LUA_FILE
@@ -288,6 +288,15 @@ class PublicTests(unittest.TestCase):
                     self.assertEqual(deploy.call_args.args[0],[str(program/'WeaselDeployer.exe'),'/deploy'])
                     restart.assert_not_called()
 
+    def test_clean_install_english_filter_is_enabled(self):
+        schema=yaml_parser().load((HERE/'double_pinyin_flypy.custom.yaml').read_text(encoding='utf-8'))
+        english=yaml_parser().load((HERE/'melt_eng.custom.yaml').read_text(encoding='utf-8'))
+        for doc in (schema,english):
+            self.assertIn('lua_filter@*flypy_english',get_patch(doc,'engine/filters'))
+        self.assertFalse(get_patch(schema,'melt_eng/enable_completion'))
+        self.assertFalse(get_patch(schema,'cn_en/enable_completion'))
+        self.assertFalse(get_patch(english,'translator/enable_completion'))
+
     @unittest.skipUnless(os.name=='nt','Windows startup launcher')
     def test_native_launcher_leaves_existing_server_running(self):
         import subprocess
@@ -330,3 +339,4 @@ class PublicTests(unittest.TestCase):
         self.assertEqual(len(get_patch(self.store.read_yaml('radical_pinyin.custom.yaml'),'speller/algebra')),10)
 
 if __name__=='__main__':unittest.main()
+
