@@ -1,6 +1,9 @@
 -- Local, exact-spelling learning. This is an Apple-inspired policy, not Apple's engine.
 local M = {}
 local states = {}
+local function close_writer(state)
+  if state and state.writer then state.writer:close();state.writer=nil end
+end
 local shared_to_s
 local glyph = require('flypy_number_style')
 -- CRT file IO may use the Windows ANSI codepage, while Rime paths are UTF-8.
@@ -60,6 +63,7 @@ function M.init(env)
   local fresh = not env.state
   if fresh then env.state = {words={},clock=0}; states[env.path]=env.state end
   env.words = env.state.words
+  env.state.references=(env.state.references or 0)+1
   if not env.state.tw_exact then
     env.state.tw_exact = {}
     local dictionary = M.open(env,'flypy_taiwan_variants.txt','r')
@@ -110,7 +114,10 @@ function M.init(env)
     local code, text = clean(ctx.input), ctx:get_commit_text()
     local n = han(text)
     -- A committed, punctuation-free 1..N-character composition; no dictionary whitelist.
-    if not n or n < 1 or n > env.max_length or not code:match('^[a-z]+$') or #code ~= 2*n then return end
+    if not n or n < 1 or n > env.max_length or not code:match('^[a-z]+$') or #code ~= 2*n then
+      -- Release the handle at sentence/English boundaries for normal backup/sync.
+      close_writer(env.state);return
+    end
     local mode = ctx:get_option('traditionalization') and 't' or 's'
     local old = bucket(env,mode,code)[text] or {count=0,manual=0}
     local manual = old.manual
@@ -120,15 +127,27 @@ function M.init(env)
     end
     env.manual = false
     local count = old.count + 1
-    local f = M.open(env,'flypy_learning.tsv','a')
+    -- Each completed word is written immediately in one unbuffered OS write.
+    local f=env.state.writer
+    if not f then
+      f=M.open(env,'flypy_learning.tsv','a')
+      if f then
+        local ok=f:setvbuf('no')
+        if ok then env.state.writer=f else f:close();f=nil end
+      end
+    end
     if f then
-      local ok = f:write(mode,'\t',code,'\t',text,'\t',count,'\t',manual,'\n')
-      f:close()
-      if ok then remember(env,mode,code,text,count,manual) end
+      local ok=f:write(mode..'\t'..code..'\t'..text..'\t'..count..'\t'..manual..'\n')
+      if ok then remember(env,mode,code,text,count,manual)
+      else f:close();env.state.writer=nil end
     end
   end)
 end
 function M.fini(env)
+  if env.state then
+    env.state.references=math.max(0,(env.state.references or 1)-1)
+    if env.state.references==0 then close_writer(env.state) end
+  end
   if env.connection then env.connection:disconnect() end
   if env.selection then env.selection:disconnect() end
   if env.update then env.update:disconnect() end

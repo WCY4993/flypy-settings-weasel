@@ -1,6 +1,6 @@
 {
-  "public_version": "2.2.10",
-  "private_compatibility_version": "2.1.13",
+  "public_version": "2.2.11",
+  "private_compatibility_version": "2.1.14",
   "public_tests": 37,
   "private_tests": 32,
   "public_engine_tests": 16,
@@ -43,5 +43,8 @@
   "native_launcher_scheduled_readonly_check": true,
   "appdata_redirection_avoided": true,
   "glyph_cache_comparisons": 10000,
-  "normal_host_installed_binary_verified": true
+  "normal_host_installed_binary_verified": true,
+  "unbuffered_single_record_learning_write": true,
+  "bounded_readonly_ipc_ready_probe": true,
+  "immediate_post_commit_journal_visibility": true
 }
