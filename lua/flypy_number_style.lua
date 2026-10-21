@@ -3807,8 +3807,13 @@ local comments = {
   ["〔数字小写〕"] = "〔數字小寫〕", ["〔数字大写〕"] = "〔數字大寫〕",
   ["〔金额小写〕"] = "〔金額小寫〕", ["〔金额大写〕"] = "〔金額大寫〕",
 }
+local shared_converter
 function M.init(env)
-  env.converter = Opencc("s2tw.json")
+  if not shared_converter then shared_converter=Opencc("s2tw.json") end
+  env.converter = shared_converter
+  env.cache = {}
+  env.cache_order = {}
+  env.cache_pos = 0
 end
 function M.exact(text)
   local out={}
@@ -3818,8 +3823,21 @@ function M.exact(text)
   return table.concat(out):gsub("叄", "參"):gsub("叁", "參")
 end
 function M.normalize(text, env)
+  -- Conversion is deterministic by text; avoid repeating OpenCC on every key.
+  if not text:find('[\128-\255]') then return text end
+  local cached=env.cache and env.cache[text]
+  if cached then return cached end
+  local original=text
   if env.converter then text = env.converter:convert(text) end
-  return M.exact(text)
+  text=M.exact(text)
+  if env.cache then
+    env.cache_pos=env.cache_pos%4096+1
+    local old=env.cache_order[env.cache_pos]
+    if old then env.cache[old]=nil end
+    env.cache_order[env.cache_pos]=original
+    env.cache[original]=text
+  end
+  return text
 end
 function M.func(input, env)
   local traditional = env.engine.context:get_option("traditionalization")

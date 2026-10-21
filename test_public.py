@@ -288,6 +288,24 @@ class PublicTests(unittest.TestCase):
                     self.assertEqual(deploy.call_args.args[0],[str(program/'WeaselDeployer.exe'),'/deploy'])
                     restart.assert_not_called()
 
+    @unittest.skipUnless(os.name=='nt','Windows startup launcher')
+    def test_native_launcher_leaves_existing_server_running(self):
+        import subprocess
+        compiler=Path(os.environ['SystemRoot'])/'Microsoft.NET/Framework64/v4.0.30319/csc.exe'
+        with tempfile.TemporaryDirectory() as folder:
+            folder=Path(folder);launcher=folder/'WeaselStartup.exe';fake=folder/'WeaselServer.exe'
+            stub=folder/'Stub.cs';stub.write_text('class Stub { static void Main() { System.Threading.Thread.Sleep(30000); } }',encoding='ascii')
+            for source,target in [(HERE/'WeaselStartup.cs',launcher),(stub,fake)]:
+                build=subprocess.run([str(compiler),'/nologo','/target:winexe','/optimize+','/out:'+str(target),str(source)],capture_output=True,timeout=30)
+                self.assertEqual(build.returncode,0,build.stdout.decode(errors='replace'))
+            server=subprocess.Popen([str(fake)],creationflags=subprocess.CREATE_NO_WINDOW)
+            try:
+                result=subprocess.run([str(launcher)],capture_output=True,timeout=10)
+                self.assertEqual(result.returncode,0)
+                self.assertIsNone(server.poll())
+            finally:
+                server.terminate();server.wait(timeout=10)
+
     @unittest.skipUnless(os.name=='nt','Windows PowerShell compatibility')
     def test_logon_scripts_parse_in_windows_powershell_51(self):
         import subprocess

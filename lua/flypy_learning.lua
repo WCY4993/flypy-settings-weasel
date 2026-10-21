@@ -1,6 +1,7 @@
 -- Local, exact-spelling learning. This is an Apple-inspired policy, not Apple's engine.
 local M = {}
 local states = {}
+local shared_to_s
 local glyph = require('flypy_number_style')
 -- CRT file IO may use the Windows ANSI codepage, while Rime paths are UTF-8.
 -- Try UTF-8 first (UTF-8-aware hosts), then a per-machine path prepared by the app.
@@ -70,7 +71,8 @@ function M.init(env)
       dictionary:close()
     end
   end
-  env.to_s = Opencc('t2s.json')
+  if not shared_to_s then shared_to_s=Opencc('t2s.json') end
+  env.to_s = shared_to_s
   env.max_length = math.max(1, math.min(128, env.engine.schema.config:get_int('flypy_learning/max_word_length') or 12))
   local file = fresh and M.open(env,'flypy_learning.tsv','r')
   if file then

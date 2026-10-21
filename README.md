@@ -104,3 +104,12 @@ Python 3.13，Tkinter/ttk；依賴版本已鎖定。建立虛擬環境後執行 
 若登入後小狼毫遲遲未出現，可選用 `Enable-FastStartup.ps1` 建立目前使用者的登入啟動工作。先在工作管理員停用原有 WeaselServer 啟動項；腳本會檢查此條件，避免官方啟動項與工作排程重複啟動。腳本不需系統管理員、不修改全系統啟動延遲或永久執行原則，也不會當場重啟輸入法。不要直接重複執行 WeaselServer.exe，因官方程式會關閉既有服務再啟動。
 
 要取消此選用工作，可在工作排程器停用 `FlypySettings-WeaselStartup`，再於工作管理員啟用原有 WeaselServer 啟動項。輸入法資料仍保存在原來的使用者資料夾。
+
+
+### 登入啟動器（2.2.10）
+
+`Enable-FastStartup.ps1` 現在只用於安裝／更新工作。工作執行時直接使用約數 KB 的 `WeaselStartup.exe`，不再先啟動 PowerShell。發行包附啟動器及同版 `WeaselStartup.cs`；原始碼建置使用 Windows 內建 .NET Framework 編譯器。啟動器檢查同一工作階段的既有服務，絕不主動重啟它；`--check` 只作唯讀就緒檢查，不啟動服務。
+
+本機 `%USERPROFILE%\.flypy-settings\startup-status.log` 只記錄啟動時間、耗時和結果，不含打字內容；最多約 32 KB 後重新記錄。舊工作定義備份也只留在本機。移除或停用方式與前述相同。排程採目前使用者、一般權限、正常優先序與可用時補執行，不依賴 OneDrive 程式先啟動；仍以 Windows 登錄的 Rime 資料夾為準。登入後實際可用時間需實機驗證。
+
+啟動器安裝於使用者資料夾的 `.flypy-settings` 子資料夾，以避免封裝桌面應用程式對 AppData 的檔案重新導向；工作命令、啟動器與狀態檔使用同一個實際位置。

@@ -1,7 +1,7 @@
 {
-  "public_version": "2.2.9",
-  "private_compatibility_version": "2.1.12",
-  "public_tests": 36,
+  "public_version": "2.2.10",
+  "private_compatibility_version": "2.1.13",
+  "public_tests": 37,
   "private_tests": 32,
   "public_engine_tests": 16,
   "private_data_in_public_config": false,
@@ -37,5 +37,11 @@
   "official_ipc_deployment": true,
   "real_reboot_tested": false,
   "guarded_optional_logon_helper": true,
-  "windows_powershell_51_syntax_check": true
+  "windows_powershell_51_syntax_check": true,
+  "bounded_glyph_cache": 4096,
+  "native_logon_launcher": true,
+  "native_launcher_scheduled_readonly_check": true,
+  "appdata_redirection_avoided": true,
+  "glyph_cache_comparisons": 10000,
+  "normal_host_installed_binary_verified": true
 }

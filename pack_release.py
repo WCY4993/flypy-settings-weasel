@@ -23,6 +23,7 @@ def main():
     tracked=subprocess.check_output(['git','ls-files','-z'],cwd=ROOT).decode('utf-8').split('\0')
     verification=json.loads((ROOT/'VERIFICATION.json').read_text(encoding='utf-8'))
     verification['exe_sha256']=hashlib.sha256(exe.read_bytes()).hexdigest()
+    verification['startup_helper_sha256']=hashlib.sha256((ROOT/'dist/WeaselStartup.exe').read_bytes()).hexdigest()
     verification['release_source_commit']=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip()
     with zipfile.ZipFile(destination,'w',zipfile.ZIP_DEFLATED,compresslevel=9) as out:
         for name in tracked:
@@ -30,6 +31,7 @@ def main():
         out.writestr('VERIFICATION.json',json.dumps(verification,ensure_ascii=False,indent=2)+'\n')
         out.write(ROOT/'flypy_taiwan.dict.yaml','flypy_taiwan.dict.yaml')
         out.write(exe,'小鶴設定工具.exe')
+        out.write(ROOT/'dist/WeaselStartup.exe','WeaselStartup.exe')
         with zipfile.ZipFile(io.BytesIO(data)) as upstream:
             prefix=f"rime-ice-{lock['commit']}/"
             for info in upstream.infolist():
