@@ -1,8 +1,8 @@
 {
-  "public_version": "2.2.12",
-  "private_compatibility_version": "2.1.15",
-  "public_tests": 38,
-  "private_tests": 32,
+  "public_version": "2.2.13",
+  "private_compatibility_version": "2.1.16",
+  "public_tests": 44,
+  "private_tests": 38,
   "public_engine_tests": 16,
   "private_data_in_public_config": false,
   "source_privacy_scan": "passed",
@@ -48,5 +48,9 @@
   "bounded_readonly_ipc_ready_probe": true,
   "immediate_post_commit_journal_visibility": true,
   "same_code_english_extension_filter": true,
-  "clean_install_english_filter_check": true
+  "clean_install_english_filter_check": true,
+  "statistics_legacy_history_readonly": true,
+  "statistics_same_single_commit_write": true,
+  "statistics_lazy_page_verified": true,
+  "statistics_speed_is_estimate": true
 }

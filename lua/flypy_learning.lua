@@ -56,6 +56,7 @@ local function remember(env, mode, code, text, count, manual)
   bucket(env,mode,code)[text] = {count=count, manual=manual}
 end
 function M.init(env)
+  env.statistics = env.engine.schema.config:get_bool('flypy_statistics/enabled') ~= false
   env.personal = {}
   env.glyph_env = {}; glyph.init(env.glyph_env)
   env.path = rime_api.get_user_data_dir() .. '/flypy_learning.tsv'
@@ -116,6 +117,7 @@ function M.init(env)
     -- A committed, punctuation-free 1..N-character composition; no dictionary whitelist.
     if not n or n < 1 or n > env.max_length or not code:match('^[a-z]+$') or #code ~= 2*n then
       -- Release the handle at sentence/English boundaries for normal backup/sync.
+      env.state.statistics_previous=nil
       close_writer(env.state);return
     end
     local mode = ctx:get_option('traditionalization') and 't' or 's'
@@ -137,8 +139,21 @@ function M.init(env)
       end
     end
     if f then
-      local ok=f:write(mode..'\t'..code..'\t'..text..'\t'..count..'\t'..manual..'\n')
-      if ok then remember(env,mode,code,text,count,manual)
+      local data=mode..'\t'..code..'\t'..text..'\t'..count..'\t'..manual..'\n'
+      local now
+      if env.statistics then
+        now=os.time()
+        local previous=env.state.statistics_previous
+        local gap=previous and now-previous or -1
+        if gap<0 or gap>30 then gap=-1 end
+        -- Text-free metadata piggybacks on the existing single, immediate write.
+        -- Legacy readers ignore this comment; the five-column word row is unchanged.
+        data=data..'#stats-v1\t'..now..'\t'..n..'\t'..(manual>old.manual and 1 or 0)..'\t'..(old.count==0 and 1 or 0)..'\t'..gap..'\n'
+      end
+      local ok=f:write(data)
+      if ok then
+        if now then env.state.statistics_previous=now end
+        remember(env,mode,code,text,count,manual)
       else f:close();env.state.writer=nil end
     end
   end)

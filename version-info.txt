@@ -1,10 +1,10 @@
 VSVersionInfo(
-  ffi=FixedFileInfo(filevers=(2,2,12,0), prodvers=(2,2,12,0), mask=0x3f, flags=0x0, OS=0x40004, fileType=0x1, subtype=0x0, date=(0,0)),
+  ffi=FixedFileInfo(filevers=(2,2,13,0), prodvers=(2,2,13,0), mask=0x3f, flags=0x0, OS=0x40004, fileType=0x1, subtype=0x0, date=(0,0)),
   kids=[StringFileInfo([StringTable('040404b0', [
     StringStruct('CompanyName','Local tools'),
     StringStruct('FileDescription','小鶴設定工具'),
-    StringStruct('FileVersion','2.2.12'),
+    StringStruct('FileVersion','2.2.13'),
     StringStruct('InternalName','FlypySettings'),
     StringStruct('OriginalFilename','小鶴設定工具.exe'),
     StringStruct('ProductName','小鶴設定工具'),
-    StringStruct('ProductVersion','2.2.12')])]), VarFileInfo([VarStruct('Translation',[1028,1200])])])
+    StringStruct('ProductVersion','2.2.13')])]), VarFileInfo([VarStruct('Translation',[1028,1200])])])

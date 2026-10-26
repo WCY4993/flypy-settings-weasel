@@ -14,6 +14,7 @@ import tkinter as tk
 from tkinter import messagebox, ttk
 import tkinter.font as tkfont
 
+from statistics_page import StatisticsPage
 from settings_core import Appearance, Entry, SettingsError, SHIFT_MODES, Store, VERSION, discover_paths
 from settings_pages import AdvancedPage, VocabularyPage, position_dialog
 from live_preview import LivePreview, documents
@@ -239,6 +240,8 @@ class App(tk.Tk):
         self.tabs.add(self.advanced_page, text='全部設定')
         self.vocabulary_page = VocabularyPage(self.tabs, self)
         self.tabs.add(self.vocabulary_page, text='我的詞彙表')
+        self.statistics_page = StatisticsPage(self.tabs, self)
+        self.tabs.add(self.statistics_page, text='輸入統計')
         self.backups_page = ttk.Frame(self.tabs, padding=22)
         self.tabs.add(self.backups_page, text='備份與還原')
         self.make_backups()

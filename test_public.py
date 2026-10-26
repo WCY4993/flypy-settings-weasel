@@ -13,6 +13,7 @@ from advanced_settings import Catalogue, Setting
 from vocabulary import Index, Rules, Rule, RULE_FILE, LUA_FILE
 from shortcut_help import manual_rows
 from live_preview import documents, rgb
+from test_statistics import StatisticsTests
 
 HERE=Path(__file__).parent
 
