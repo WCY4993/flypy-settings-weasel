@@ -116,6 +116,7 @@ class PublicTests(unittest.TestCase):
         name='double_pinyin_flypy.custom.yaml'
         doc=self.store.read_yaml(name)
         set_patch(doc,'flypy_quick_remove/enabled',False)
+        set_patch(doc,'flypy_quick_remove/restore_on_commit',False)
         (self.root/name).write_text(dump_yaml(doc),encoding='utf-8')
         raw='台灣\t\thide\t台灣\t\n'
         (self.root/RULE_FILE).write_text(raw,encoding='utf-8')
@@ -124,6 +125,7 @@ class PublicTests(unittest.TestCase):
         self.store.commit_bytes(changes,'quick removal upgrade')
         doc=self.store.read_yaml(name)
         self.assertFalse(get_patch(doc,'flypy_quick_remove/enabled'))
+        self.assertFalse(get_patch(doc,'flypy_quick_remove/restore_on_commit'))
         filters=get_patch(doc,'engine/filters')
         self.assertLess(filters.index('lua_filter@*flypy_quick_remove*filter'),filters.index('uniquifier'))
         self.assertEqual((self.root/RULE_FILE).read_text(encoding='utf-8'),raw)

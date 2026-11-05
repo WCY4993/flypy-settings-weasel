@@ -23,7 +23,7 @@ def manual_rows(documents):
         if key=='Caps_Lock':note='大寫鎖定依 Windows 狀態；有未完成輸入時依此設定處理。'
         add('切換與選字',key_name(key),ACTIONS.get(mode,'原始行為：'+str(mode)),'中文模式',note)
     if 'lua_processor@*flypy_quick_remove' in schema.get('engine', {}).get('processors', []) and schema.get('flypy_quick_remove', {}).get('enabled', True):
-        add('切換與選字', 'Ctrl + Delete', '隱藏目前反白候選', '中文模式且有候選清單時', '方向鍵選中目標再按快捷鍵。同字形的所有來源、讀音都會隱藏；立即保存。按住不放只執行一次。')
+        add('切換與選字', 'Ctrl + Delete', '隱藏目前反白候選', '中文模式且有候選清單時', '方向鍵選中目標再按快捷鍵。同字形的所有來源、讀音都會隱藏；立即保存。按住不放只執行一次；再次將原詞上屏會自動恢復（可於全部設定關閉）。')
         add('切換與選字', 'Ctrl + Shift + Delete', '復原最近一次快捷移除', '中文模式且有候選清單時', '可逐次復原本次使用期間的移除。長期恢復請按重新讀取，在我的詞彙表勾選「只看我的調整規則」，選詞後取消詞彙規則，再儲存並重新部署。')
     hotkeys=default.get('switcher',{}).get('hotkeys',[])
     menu=' 或 '.join(key_name(k) for k in hotkeys) or '未配置快捷鍵'

@@ -11,6 +11,7 @@ SCOPES = {'weasel': '小狼毫介面', 'default': '全域與按鍵',
           'radical_pinyin': '拆字反查'}
 CATEGORIES = ['全部', '介面與配色', '按鍵與選字', '繁簡與標點', '詞庫與排序', '日期與工具', '進階結構', '常用設定']
 LABELS = {
+ 'flypy_quick_remove/restore_on_commit': '再次輸入隱藏詞時自動恢復',
  'flypy_quick_remove/enabled': '候選框快捷移除（Ctrl＋Delete）',
  'style/color_scheme': '淺色模式配色', 'style/color_scheme_dark': '深色模式配色',
  'style/font_point': '候選字級', 'style/label_font_point': '數字字級',

@@ -21,7 +21,7 @@ local M = {}
 function M.init(env)
   env.rules = {}
   local quick = {engine=env.engine}
-  require('flypy_quick_remove').init(quick)
+  require('flypy_quick_remove').filter.init(quick)
   env.quick_rules = quick.state.overrides
   env.quick_state = quick.state
   env.has_pin = false

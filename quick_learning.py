@@ -121,6 +121,9 @@ def prepare_io(store, changes):
         if get_patch(doc,path) is None:
             set_patch(doc,path,value)
             result[name] = dump_yaml(doc).encode('utf-8')
+    if get_patch(doc, 'flypy_quick_remove/restore_on_commit') is None:
+        set_patch(doc, 'flypy_quick_remove/restore_on_commit', True)
+        result[name] = dump_yaml(doc).encode('utf-8')
     english_name = 'melt_eng.custom.yaml'
     english_raw = result.get(english_name,store.raw.get(english_name))
     if english_raw:

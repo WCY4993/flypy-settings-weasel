@@ -1,6 +1,6 @@
 {
-  "public_version": "2.2.14",
-  "private_compatibility_version": "2.1.17",
+  "public_version": "2.2.15",
+  "private_compatibility_version": "2.1.18",
   "public_tests": 47,
   "private_tests": 38,
   "public_engine_tests": 16,
@@ -56,5 +56,7 @@
   "quick_candidate_hide_engine_checks": true,
   "quick_candidate_hide_restart_checks": true,
   "quick_candidate_hide_exact_glyphs": true,
-  "quick_candidate_hide_shared_app_rules": true
+  "quick_candidate_hide_shared_app_rules": true,
+  "quick_candidate_restore_on_commit": true,
+  "quick_candidate_restore_fragment_boundary_checks": true
 }
