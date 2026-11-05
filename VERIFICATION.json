@@ -1,7 +1,7 @@
 {
-  "public_version": "2.2.13",
-  "private_compatibility_version": "2.1.16",
-  "public_tests": 44,
+  "public_version": "2.2.14",
+  "private_compatibility_version": "2.1.17",
+  "public_tests": 47,
   "private_tests": 38,
   "public_engine_tests": 16,
   "private_data_in_public_config": false,
@@ -52,5 +52,9 @@
   "statistics_legacy_history_readonly": true,
   "statistics_same_single_commit_write": true,
   "statistics_lazy_page_verified": true,
-  "statistics_speed_is_estimate": true
+  "statistics_speed_is_estimate": true,
+  "quick_candidate_hide_engine_checks": true,
+  "quick_candidate_hide_restart_checks": true,
+  "quick_candidate_hide_exact_glyphs": true,
+  "quick_candidate_hide_shared_app_rules": true
 }

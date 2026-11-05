@@ -31,6 +31,7 @@ Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'upstream.json') -Destination (J
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'lua\flypy_number_style.lua') -Destination (Join-Path $UserDir 'lua\flypy_number_style.lua') -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'lua\flypy_english.lua') -Destination (Join-Path $UserDir 'lua\flypy_english.lua') -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'lua\flypy_learning.lua') -Destination (Join-Path $UserDir 'lua\flypy_learning.lua') -Force
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'lua\flypy_quick_remove.lua') -Destination (Join-Path $UserDir 'lua\flypy_quick_remove.lua') -Force
 if(-not ('Flypy.NativeIo' -as [type])){Add-Type -Namespace Flypy -Name NativeIo -MemberDefinition '[System.Runtime.InteropServices.DllImport("kernel32.dll")] public static extern uint GetACP();'}
 $ioEncoding=[Text.Encoding]::GetEncoding([int][Flypy.NativeIo]::GetACP(),[Text.EncoderFallback]::ExceptionFallback,[Text.DecoderFallback]::ExceptionFallback)
 $ioHex=([BitConverter]::ToString($ioEncoding.GetBytes($UserDir))).Replace('-','').ToLowerInvariant()

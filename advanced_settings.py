@@ -11,6 +11,7 @@ SCOPES = {'weasel': '小狼毫介面', 'default': '全域與按鍵',
           'radical_pinyin': '拆字反查'}
 CATEGORIES = ['全部', '介面與配色', '按鍵與選字', '繁簡與標點', '詞庫與排序', '日期與工具', '進階結構', '常用設定']
 LABELS = {
+ 'flypy_quick_remove/enabled': '候選框快捷移除（Ctrl＋Delete）',
  'style/color_scheme': '淺色模式配色', 'style/color_scheme_dark': '深色模式配色',
  'style/font_point': '候選字級', 'style/label_font_point': '數字字級',
  'style/comment_font_point': '註解字級', 'style/font_face': '候選字體',
@@ -41,7 +42,7 @@ def category(path):
     first = path.split('/')[0]
     if first in ('style', 'preset_color_schemes', 'app_options', 'global_ascii', 'show_notifications', 'show_notifications_time'):
         return CATEGORIES[1]
-    if first in ('ascii_composer', 'key_binder', 'editor', 'menu', 'switcher', 'speller'):
+    if first in ('ascii_composer', 'key_binder', 'editor', 'menu', 'switcher', 'speller', 'flypy_quick_remove'):
         return CATEGORIES[2]
     if first in ('switches', 'traditionalize', 'punctuator', 'emoji'):
         return CATEGORIES[3]

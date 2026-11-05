@@ -494,7 +494,7 @@ class VocabularyPage(ttk.Frame):
         self.kind = tk.StringVar(value='全部'); self.enabled = tk.StringVar(value='全部')
         self.source = tk.StringVar(value='全部來源'); self.only_rules = tk.BooleanVar(value=False)
         ttk.Label(self, text='我的詞彙表', style='Section.TLabel').pack(anchor='w')
-        ttk.Label(self, text='不同字形分別保存；改選一次，下次優先。無標點的 1～12 字完整組字會永久記住，可在此隱藏；長詞可手動新增。', style='Muted.TLabel', wraplength=950).pack(anchor='w', pady=(6, 10))
+        ttk.Label(self, text='候選框按 Ctrl＋Delete 隱藏，Ctrl＋Shift＋Delete 復原。要在此管理，先按下方「重新讀取」，再勾「只看我的調整規則」；取消規則後儲存並重新部署。', style='Muted.TLabel', wraplength=950).pack(anchor='w', pady=(6, 10))
         filters = ttk.Frame(self); filters.pack(fill='x')
         ttk.Label(filters, text='搜尋').pack(side='left')
         ttk.Entry(filters, textvariable=self.search, width=25).pack(side='left', fill='x', expand=True, padx=8)

@@ -3,6 +3,7 @@ import re
 
 # Short label, followed by the effect rather than a literal word-for-word gloss.
 HELP = {
+ 'flypy_quick_remove': ('候選框快捷移除', '開啟後，選中候選按 Ctrl＋Delete 立即隱藏相同字形的所有來源與讀音。Ctrl＋Shift＋Delete 逐次復原本次使用期間的移除。關閉開關會停用兩個快捷鍵，已保存的隱藏規則仍可在詞彙表取消。'),
  'flypy_english': ('精簡英文候選', '完整英文優先提供原始大小寫及標準名稱；長詞補全可另外開啟。'),
  'original_first': ('英文先保留原始大小寫', '完整匹配英文名稱時，先列出你輸入的寫法，再列標準名稱。例如 github、GitHub；不把英文候選移到中文候選之前。'),
  'io_path_utf8_hex': ('Unicode 路徑相容資料（自動管理）', '供 UTF-8 主機中的 Lua 檔案讀寫使用，由工具自動更新，請勿手動修改。'),
@@ -184,6 +185,7 @@ KEYS = {'BackSpace':'退格鍵', 'Delete':'刪除鍵', 'Escape':'取消鍵', 'Re
  'Control+Return':'Ctrl＋Enter 組合鍵','Control+Shift+Return':'Ctrl＋Shift＋Enter 組合鍵','Shift+Left':'Shift＋左方向鍵','Shift+Right':'Shift＋右方向鍵'}
 
 def info(path, value=None):
+    if path == 'flypy_quick_remove/enabled': return ('候選框快捷移除（Ctrl＋Delete）', HELP['flypy_quick_remove'][1])
     key = path.rsplit('/',1)[-1]
     if path.startswith('switches/') and key=='name':
         return '模式識別碼', '例如 traditionalization 表示繁體模式；這是內部名稱，請保留原文。'

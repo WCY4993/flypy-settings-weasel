@@ -22,6 +22,9 @@ def manual_rows(documents):
         note='只指單按後放開；按住 Shift 再打字仍可輸入大寫或符號。'
         if key=='Caps_Lock':note='大寫鎖定依 Windows 狀態；有未完成輸入時依此設定處理。'
         add('切換與選字',key_name(key),ACTIONS.get(mode,'原始行為：'+str(mode)),'中文模式',note)
+    if 'lua_processor@*flypy_quick_remove' in schema.get('engine', {}).get('processors', []) and schema.get('flypy_quick_remove', {}).get('enabled', True):
+        add('切換與選字', 'Ctrl + Delete', '隱藏目前反白候選', '中文模式且有候選清單時', '方向鍵選中目標再按快捷鍵。同字形的所有來源、讀音都會隱藏；立即保存。按住不放只執行一次。')
+        add('切換與選字', 'Ctrl + Shift + Delete', '復原最近一次快捷移除', '中文模式且有候選清單時', '可逐次復原本次使用期間的移除。長期恢復請按重新讀取，在我的詞彙表勾選「只看我的調整規則」，選詞後取消詞彙規則，再儲存並重新部署。')
     hotkeys=default.get('switcher',{}).get('hotkeys',[])
     menu=' 或 '.join(key_name(k) for k in hotkeys) or '未配置快捷鍵'
     add('切換與選字',menu,'開啟輸入方案與狀態選單','小狼毫啟用時','在選單中切換 Emoji、繁簡、全半形等狀態；以實際選單為準。')

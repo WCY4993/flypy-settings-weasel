@@ -111,6 +111,42 @@ class PublicTests(unittest.TestCase):
         self.store=Store(self.root)
     def tearDown(self):self.temp.cleanup()
     def args(self):return self.store.appearance,copy.deepcopy(self.store.words.entries),copy.deepcopy(self.store.phrases.entries)
+    def test_quick_remove_upgrade_preserves_disabled_choice_and_rules(self):
+        from quick_learning import prepare_io
+        name='double_pinyin_flypy.custom.yaml'
+        doc=self.store.read_yaml(name)
+        set_patch(doc,'flypy_quick_remove/enabled',False)
+        (self.root/name).write_text(dump_yaml(doc),encoding='utf-8')
+        raw='台灣\t\thide\t台灣\t\n'
+        (self.root/RULE_FILE).write_text(raw,encoding='utf-8')
+        self.store.load()
+        changes=prepare_io(self.store,{})
+        self.store.commit_bytes(changes,'quick removal upgrade')
+        doc=self.store.read_yaml(name)
+        self.assertFalse(get_patch(doc,'flypy_quick_remove/enabled'))
+        filters=get_patch(doc,'engine/filters')
+        self.assertLess(filters.index('lua_filter@*flypy_quick_remove*filter'),filters.index('uniquifier'))
+        self.assertEqual((self.root/RULE_FILE).read_text(encoding='utf-8'),raw)
+        self.assertEqual((self.root/'lua/flypy_quick_remove.lua').read_bytes(),(HERE/'lua/flypy_quick_remove.lua').read_bytes())
+        self.assertEqual(prepare_io(self.store,{}),{})
+
+    def test_quick_remove_append_history_and_restore_are_editable(self):
+        (self.root/RULE_FILE).write_text('台灣\t\tpin\t台灣\t\n'+'\n台灣\t\thide\t台灣\t\n',encoding='utf-8')
+        self.store.load();rules=Rules(self.store)
+        self.assertEqual(rules.rows['台灣'].mode,'hide')
+        self.assertNotIn('臺灣',rules.rows)
+        rules.rows.pop('台灣')
+        changes=rules.build({},Catalogue(self.store))
+        self.store.commit_bytes(changes,'restore candidate')
+        self.assertNotIn('台灣',Rules(self.store).rows)
+
+    def test_quick_remove_manual_follows_enabled_setting(self):
+        schema={'engine':{'processors':['lua_processor@*flypy_quick_remove']},'flypy_quick_remove':{'enabled':True}}
+        rows=manual_rows({'double_pinyin_flypy':schema})
+        self.assertTrue(any(r[1]=='Ctrl + Delete' and '隱藏' in r[2] for r in rows))
+        schema['flypy_quick_remove']['enabled']=False
+        self.assertFalse(any(r[1]=='Ctrl + Delete' and '隱藏' in r[2] for r in manual_rows({'double_pinyin_flypy':schema})))
+
     def test_personal_variants_are_independent_after_reload(self):
         a,w,p=self.args()
         w += [self.store.normalize_word(t,'fen bu',10000) for t in ['分布','分佈']]

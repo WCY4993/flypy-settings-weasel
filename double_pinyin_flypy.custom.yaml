@@ -45,6 +45,8 @@ patch:
   cn_en/enable_completion: false
   flypy_english/original_first: true
   melt_eng/initial_quality: 0.8
+  engine/processors/@before 0: lua_processor@*flypy_quick_remove
+  flypy_quick_remove/enabled: true
   engine/filters:
   - "lua_filter@*corrector"
   - "reverse_lookup_filter@radical_reverse_lookup"
@@ -57,5 +59,6 @@ patch:
   - lua_filter@*flypy_number_style
   - lua_filter@*flypy_learning
   - lua_filter@*flypy_english
+  - lua_filter@*flypy_quick_remove*filter
   - uniquifier
   flypy_learning/max_word_length: 12

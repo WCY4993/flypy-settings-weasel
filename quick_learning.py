@@ -54,7 +54,7 @@ def prepare_io(store, changes):
     # Bundle the two small Lua assets so replacing the GUI also upgrades its runtime.
     import sys
     assets = Path(getattr(sys,'_MEIPASS',Path(__file__).parent)) / 'lua'
-    for filename in ('flypy_learning.lua','flypy_number_style.lua','flypy_english.lua'):
+    for filename in ('flypy_learning.lua','flypy_number_style.lua','flypy_english.lua','flypy_quick_remove.lua'):
         asset = assets / filename
         name_in_store = 'lua/' + filename
         if asset.is_file() and name_in_store in store.raw:
@@ -96,6 +96,24 @@ def prepare_io(store, changes):
         filters.remove('lua_filter@*flypy_learning');filters.insert(filters.index(FILTER),'lua_filter@*flypy_learning')
     if filters.index('lua_filter@*flypy_english')>filters.index(FILTER):
         filters.remove('lua_filter@*flypy_english');filters.insert(filters.index(FILTER),'lua_filter@*flypy_english')
+    quick_filter = 'lua_filter@*flypy_quick_remove*filter'
+    if quick_filter in filters:
+        filters.remove(quick_filter)
+    position = filters.index('uniquifier') if 'uniquifier' in filters else len(filters)
+    filters.insert(position, quick_filter)
+    processors = get_patch(doc, 'engine/processors')
+    if processors is None:
+        compiled = store.root / 'build/double_pinyin_flypy.schema.yaml'
+        processors = yaml_parser().load(compiled.read_text(encoding='utf-8-sig')).get('engine', {}).get('processors', []) if compiled.is_file() else []
+    processors = list(processors)
+    processor = 'lua_processor@*flypy_quick_remove'
+    if processor not in processors:
+        processors.insert(0, processor)
+        set_patch(doc, 'engine/processors', processors)
+        result[name] = dump_yaml(doc).encode('utf-8')
+    if get_patch(doc, 'flypy_quick_remove/enabled') is None:
+        set_patch(doc, 'flypy_quick_remove/enabled', True)
+        result[name] = dump_yaml(doc).encode('utf-8')
     if filters != get_patch(doc,'engine/filters'):
         set_patch(doc,'engine/filters',filters)
         result['double_pinyin_flypy.custom.yaml'] = dump_yaml(doc).encode('utf-8')

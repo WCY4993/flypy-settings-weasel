@@ -21,10 +21,10 @@ from ruamel.yaml import YAML
 from taiwan_text import TaiwanConverter
 from glyph_normalization import normalize_glyphs
 
-VERSION = '2.2.13'
+VERSION = '2.2.14'
 FILES = ('weasel.custom.yaml', 'default.custom.yaml',
          'flypy_personal.dict.yaml', 'flypy_phrases.txt')
-OPTIONAL_FILES = ('flypy_taiwan_variants.txt', 'lua/flypy_english.lua', 'flypy_taiwan.dict.yaml', 'flypy_tw.dict.yaml', 'lua/flypy_learning.lua', 'double_pinyin_flypy.custom.yaml', 'melt_eng.custom.yaml',
+OPTIONAL_FILES = ('lua/flypy_quick_remove.lua', 'flypy_taiwan_variants.txt', 'lua/flypy_english.lua', 'flypy_taiwan.dict.yaml', 'flypy_tw.dict.yaml', 'lua/flypy_learning.lua', 'double_pinyin_flypy.custom.yaml', 'melt_eng.custom.yaml',
                   'radical_pinyin.custom.yaml', 'lua/flypy_number_style.lua', 'flypy_vocabulary_rules.tsv',
                   'lua/flypy_vocabulary_filter.lua', 'opencc/flypy_s2twp.json', 'opencc/flypy_tw_terms.txt')
 SHIFT_MODES = {
