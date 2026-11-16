@@ -45,7 +45,7 @@ def manual_rows(documents):
         if key in names:add('日期與工具',str(code),names[key],'中文模式，直接輸入這組字母','從候選清單選擇需要的格式。')
     if isinstance(schema.get('lunar'),str):add('日期與工具',schema['lunar'],'今天農曆','中文模式，直接輸入')
     patterns=schema.get('recognizer',{}).get('patterns',{})
-    for name,example,action,note in [('number','R1234','數字轉中文／金額','R 要大寫；選取一般數字或大寫金額候選。'),('gregorian_to_lunar','N20261019','指定公曆轉農曆','N 要大寫；後接年月日。'),('unicode','U4e2d','Unicode 字元輸入','U 要大寫；後接十六進位字碼。'),('calculator','cC1+2','計算器','大小寫依範例；輸入算式後選取結果。'),('radical_lookup',str(schema.get('radical_lookup',{}).get('prefix','uU'))+'mumu','拆字反查','前綴大小寫須相同；例以 mu mu 拆查「林」。'),('punct','Vhelp','符號說明','V 要大寫；查看目前符號表。')]:
+    for name,example,action,note in [('number','R1234','數字轉中文／金額','R 要大寫；選取一般數字或大寫金額候選。'),('gregorian_to_lunar','N20261019','指定公曆轉農曆','N 要大寫；後接年月日。'),('unicode','U4e2d','Unicode 字元輸入','U 要大寫；後接十六進位字碼。'),('calculator','cC1+2','計算器','大小寫依範例；輸入算式後選取結果。'),('radical_lookup',str(schema.get('radical_lookup',{}).get('prefix','uU'))+'mumu','拆字反查','前綴大小寫須相同；例以 mu mu 拆查「林」。'),('punct','Vhelp','符號選單','V 要大寫；可直接選取分類，再選符號。Vlist 也能開啟。' if 'lua_processor@*flypy_symbol_help' in schema.get('engine', {}).get('processors', []) else 'V 要大寫；查看目前符號表。')]:
         if name in patterns:add('日期與工具',example,action,'中文模式',note+' 原始辨識規則：'+str(patterns[name]))
     add('日期與工具',menu+' → Emoji','開啟／關閉 Emoji 候選','輸入方案與狀態選單','開啟後輸入相關詞，例如「笑」，候選中可出現表情符號；未配置獨立 Emoji 快捷鍵時使用此選單。')
     add('工具操作','Ctrl + S','僅儲存設定','小鶴設定工具內','要套用到輸入法，請按「儲存並重新部署」。')

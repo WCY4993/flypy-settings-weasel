@@ -54,7 +54,7 @@ def prepare_io(store, changes):
     # Bundle the two small Lua assets so replacing the GUI also upgrades its runtime.
     import sys
     assets = Path(getattr(sys,'_MEIPASS',Path(__file__).parent)) / 'lua'
-    for filename in ('flypy_learning.lua','flypy_number_style.lua','flypy_english.lua','flypy_quick_remove.lua'):
+    for filename in ('flypy_learning.lua','flypy_number_style.lua','flypy_english.lua','flypy_quick_remove.lua','flypy_symbol_help.lua'):
         asset = assets / filename
         name_in_store = 'lua/' + filename
         if asset.is_file() and name_in_store in store.raw:
@@ -106,9 +106,18 @@ def prepare_io(store, changes):
         compiled = store.root / 'build/double_pinyin_flypy.schema.yaml'
         processors = yaml_parser().load(compiled.read_text(encoding='utf-8-sig')).get('engine', {}).get('processors', []) if compiled.is_file() else []
     processors = list(processors)
+    original_processors = processors.copy()
     processor = 'lua_processor@*flypy_quick_remove'
     if processor not in processors:
         processors.insert(0, processor)
+    if (assets / 'flypy_symbol_help.lua').is_file():
+        help_processor = 'lua_processor@*flypy_symbol_help'
+        help_filter = 'lua_filter@*flypy_symbol_help*filter'
+        if help_processor not in processors:
+            processors.insert(0, help_processor)
+        if help_filter not in filters:
+            filters.append(help_filter)
+    if processors != original_processors:
         set_patch(doc, 'engine/processors', processors)
         result[name] = dump_yaml(doc).encode('utf-8')
     if get_patch(doc, 'flypy_quick_remove/enabled') is None:

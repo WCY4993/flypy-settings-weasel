@@ -46,6 +46,7 @@ patch:
   flypy_english/original_first: true
   melt_eng/initial_quality: 0.8
   engine/processors/@before 0: lua_processor@*flypy_quick_remove
+  engine/processors/@before 1: lua_processor@*flypy_symbol_help
   flypy_quick_remove/enabled: true
   flypy_quick_remove/restore_on_commit: true
   engine/filters:
@@ -62,4 +63,5 @@ patch:
   - lua_filter@*flypy_english
   - lua_filter@*flypy_quick_remove*filter
   - uniquifier
+  - lua_filter@*flypy_symbol_help*filter
   flypy_learning/max_word_length: 12

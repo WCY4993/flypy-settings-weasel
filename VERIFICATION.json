@@ -1,7 +1,7 @@
 {
-  "public_version": "2.2.15",
+  "public_version": "2.2.16",
   "private_compatibility_version": "2.1.18",
-  "public_tests": 47,
+  "public_tests": 53,
   "private_tests": 38,
   "public_engine_tests": 16,
   "private_data_in_public_config": false,
@@ -58,5 +58,6 @@
   "quick_candidate_hide_exact_glyphs": true,
   "quick_candidate_hide_shared_app_rules": true,
   "quick_candidate_restore_on_commit": true,
-  "quick_candidate_restore_fragment_boundary_checks": true
+  "quick_candidate_restore_fragment_boundary_checks": true,
+  "symbol_help_native_engine_checks": true
 }
