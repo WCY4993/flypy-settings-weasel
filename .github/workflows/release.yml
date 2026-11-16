@@ -3,6 +3,10 @@ on:
   workflow_dispatch:
   push:
     tags: ["v*"]
+    branches: [main]
+    paths:
+      - version-info.txt
+      - .github/workflows/release.yml
 permissions:
   contents: write
 jobs:
